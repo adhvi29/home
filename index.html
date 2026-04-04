@@ -5,193 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Diaries</title>
 <style>
-:root{
-  --bg1:#0f172a;
-  --bg2:#1e293b;
-  --accent:#6366f1;
-  --accent2:#22d3ee;
-  --card:rgba(255,255,255,0.08);
-}
+:root{--bg1:#0f172a;--bg2:#1e293b;--accent:#6366f1;--accent2:#22d3ee;--card:rgba(255,255,255,0.08);} 
+body{margin:0;font-family:'Segoe UI',sans-serif;background:radial-gradient(circle at top,var(--bg2),var(--bg1));color:white;}
+header{text-align:center;padding:25px;font-size:2.6rem;font-weight:bold;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 
-body{
-  margin:0;
-  font-family: 'Segoe UI', sans-serif;
-  background: radial-gradient(circle at top, var(--bg2), var(--bg1));
-  color:white;
-}
+/* SETTINGS BUTTON */
+.settings-btn{position:fixed;top:15px;right:15px;font-size:20px;background:var(--card);padding:10px;border-radius:50%;cursor:pointer;}
 
-header{
-  text-align:center;
-  padding:30px;
-  font-size:2.8rem;
-  font-weight:bold;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
+.settings-panel{position:fixed;top:60px;right:15px;background:var(--card);padding:20px;border-radius:15px;display:none;width:260px;backdrop-filter:blur(10px);}
+.settings-panel h3{margin-top:0;}
+.settings-panel input{width:90%;}
 
-nav{
-  display:flex;
-  justify-content:center;
-  gap:12px;
-  margin-bottom:15px;
-  flex-wrap:wrap;
-}
+nav{display:flex;justify-content:center;gap:10px;margin:10px;flex-wrap:wrap;}
+nav button{padding:10px 15px;border:none;border-radius:999px;background:var(--card);color:white;cursor:pointer;}
 
-nav button{
-  padding:10px 18px;
-  border:none;
-  border-radius:999px;
-  background:var(--card);
-  color:white;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-nav button:hover{
-  background:linear-gradient(45deg,var(--accent),var(--accent2));
-  transform:translateY(-2px);
-}
-
-.section{
-  display:none;
-  max-width:900px;
-  margin:auto;
-  padding:20px;
-  animation:fade 0.3s ease;
-}
+.section{display:none;padding:20px;max-width:900px;margin:auto;}
 .active{display:block;}
 
-@keyframes fade{
-  from{opacity:0;transform:translateY(10px);} to{opacity:1;}
-}
+.card{background:var(--card);padding:15px;border-radius:15px;}
+textarea{width:100%;height:120px;border-radius:10px;border:none;padding:10px;}
+.btn{padding:8px 12px;border:none;border-radius:8px;background:var(--accent);color:white;cursor:pointer;margin-top:5px;}
+.entry{background:var(--card);padding:10px;border-radius:10px;margin:10px 0;}
+.entry img{max-width:100%;border-radius:10px;margin-top:8px;}
 
-.card{
-  background:var(--card);
-  padding:20px;
-  border-radius:16px;
-  backdrop-filter:blur(10px);
-  box-shadow:0 10px 30px rgba(0,0,0,0.3);
-}
+.lock-screen{position:fixed;inset:0;background:#000;display:flex;justify-content:center;align-items:center;flex-direction:column;}
 
-textarea{
-  width:100%;
-  height:130px;
-  border-radius:12px;
-  border:none;
-  padding:12px;
-}
+.loading{display:none;font-size:1.5rem;animation:spin 1s linear infinite;}
+@keyframes spin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
 
-.btn{
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  background:linear-gradient(45deg,var(--accent),var(--accent2));
-  color:white;
-  cursor:pointer;
-  margin-top:10px;
-}
+.popup{position:fixed;top:20px;right:20px;background:#ef4444;padding:12px;border-radius:10px;display:none;}
 
-.entry{
-  background:var(--card);
-  padding:15px;
-  border-radius:12px;
-  margin:10px 0;
-  position:relative;
-}
-
-.entry::after{
-  content:"✨";
-  position:absolute;
-  top:-8px;
-  right:-8px;
-}
-
-.entry img{
-  max-width:100%;
-  border-radius:10px;
-  margin-top:10px;
-}
-
-.lock-screen{
-  position:fixed;
-  inset:0;
-  background:linear-gradient(135deg,#020617,#0f172a);
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  gap:10px;
-}
-
-.lock-box{
-  background:var(--card);
-  padding:25px;
-  border-radius:15px;
-  text-align:center;
-  animation:pop 0.4s ease;
-}
-
-@keyframes pop{
-  from{transform:scale(0.8);opacity:0;} to{transform:scale(1);opacity:1;}
-}
-
-input{
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  margin:10px;
-}
-
-.loading{
-  display:none;
-  font-size:1.5rem;
-  animation:spin 1s linear infinite;
-}
-
-@keyframes spin{
-  from{transform:rotate(0deg);} to{transform:rotate(360deg);}
-}
-
-.popup{
-  position:fixed;
-  top:20px;
-  right:20px;
-  background:#ef4444;
-  padding:15px;
-  border-radius:10px;
-  display:none;
-}
-
-.emoji-popup{
-  position:absolute;
-  background:#1e293b;
-  padding:10px;
-  border-radius:10px;
-  display:none;
-  max-height:200px;
-  overflow:auto;
-}
-
-.emoji-popup span{
-  padding:5px;
-  cursor:pointer;
-  font-size:18px;
-}
-
-footer{text-align:center;margin:30px;opacity:0.7;}
+.emoji-popup{position:absolute;background:#1e293b;padding:10px;border-radius:10px;display:none;max-height:200px;overflow:auto;}
+.emoji-popup span{padding:5px;cursor:pointer;}
 </style>
 </head>
 <body>
 
+<div class="settings-btn" onclick="toggleSettings()">⚙️</div>
+
+<div id="settings" class="settings-panel">
+<h3>⚙️ Settings</h3>
+
+<label>Enable Animations</label>
+<input type="checkbox" id="animToggle" checked onchange="toggleAnim()"><br><br>
+
+<label>Dark Mode</label>
+<input type="checkbox" id="themeToggle" checked onchange="toggleTheme()"><br><br>
+
+<h4>🔑 Change Password</h4>
+<input type="password" id="newPass" placeholder="New password"><br>
+<button class="btn" onclick="changePass()">Update</button><br><br>
+
+<button class="btn" onclick="clearData()">🗑 Clear Diary</button>
+</div>
+
 <div id="lock" class="lock-screen">
-  <div class="lock-box">
-    <h2>🔐 Secure Diary</h2>
-    <input type="password" id="pass" placeholder="Enter password">
-    <br>
-    <button class="btn" onclick="unlock()">Unlock</button>
-    <div id="loading" class="loading">🔄</div>
-  </div>
+<h2>🔐 Enter Password</h2>
+<input type="password" id="pass">
+<button class="btn" onclick="unlock()">Enter</button>
+<div id="loading" class="loading">🔄</div>
 </div>
 
 <div id="popup" class="popup">❌ Wrong Password</div>
@@ -199,14 +71,13 @@ footer{text-align:center;margin:30px;opacity:0.7;}
 <header>📔 Diaries</header>
 
 <nav>
-<button onclick="showSection('compose')">✍️ Compose</button>
-<button onclick="showSection('past')">📜 Past Diaries</button>
-<button onclick="showSection('about')">👤 About</button>
+<button onclick="showSection('compose')">Compose</button>
+<button onclick="showSection('past')">Past Diaries</button>
+<button onclick="showSection('about')">About</button>
 </nav>
 
 <div id="compose" class="section active">
 <div class="card">
-<h2>Write Something ✨</h2>
 <button onclick="toggleEmoji(event)">😊</button>
 <button onclick="imgInput.click()">➕</button>
 <input type="file" id="imgInput" style="display:none" onchange="addImage(event)">
@@ -217,7 +88,6 @@ footer{text-align:center;margin:30px;opacity:0.7;}
 </div>
 
 <div id="past" class="section">
-<h2>📜 Past Diaries</h2>
 <input id="search" placeholder="Search..." oninput="displayNotes()">
 <input type="date" id="dateFilter" onchange="displayNotes()">
 <div id="entries"></div>
@@ -225,27 +95,49 @@ footer{text-align:center;margin:30px;opacity:0.7;}
 
 <div id="about" class="section">
 <div class="card">
-<h2>About Me</h2>
 <p><b>Name:</b> Adhvik Mahesh</p>
 <p><b>Grade:</b> 9</p>
-<p><b>🚀 Curious Mind</b><br>Always learning, building and improving step by step. This diary captures growth and ideas.</p>
 </div>
 </div>
-
-<footer>✨ Personal Diary App ✨</footer>
 
 <script>
 if(!localStorage.getItem("pass")) localStorage.setItem("pass","adhvik_diary");
 
+function toggleSettings(){
+ let s=document.getElementById("settings");
+ s.style.display=s.style.display==='block'?'none':'block';
+}
+
+function changePass(){
+ let p=document.getElementById("newPass").value;
+ if(!p) return alert("Enter password");
+ localStorage.setItem("pass",p);
+ alert("Password changed");
+}
+
+function clearData(){
+ if(confirm("Delete all entries?")){
+  localStorage.removeItem("notes");
+  alert("Cleared");
+ }
+}
+
+function toggleAnim(){
+ let on=document.getElementById("animToggle").checked;
+ document.body.style.transition=on?"all 0.3s":"none";
+}
+
+function toggleTheme(){
+ let dark=document.getElementById("themeToggle").checked;
+ document.body.style.background=dark?"radial-gradient(circle,#1e293b,#0f172a)":"#fff";
+ document.body.style.color=dark?"white":"black";
+}
+
 function unlock(){
  let input=document.getElementById("pass").value;
- let correct=localStorage.getItem("pass");
-
- if(input===correct){
+ if(input===localStorage.getItem("pass")){
   document.getElementById("loading").style.display="block";
-  setTimeout(()=>{
-    document.getElementById("lock").style.display="none";
-  },2000);
+  setTimeout(()=>document.getElementById("lock").style.display="none",2000);
  } else {
   let p=document.getElementById("popup");
   p.style.display="block";
@@ -253,16 +145,14 @@ function unlock(){
  }
 }
 
-const emojis="😄 😂 😍 😭 😎 🤯 🥳 🤩 😈 👻 💀 🔥 ✨ ⭐ ❤️ 💖 💯 👍 👎 🙌 👏 🧠 📚 🎯 🚀 🌙 ☕ 🎮 📱 🎧 ⚽ 🏆 🍕 🍩".split(" ");
-
+const emojis="😄 😂 😍 😭 😎 🤯 🥳 🤩 😈 👻 💀 🔥 ✨ ❤️ 💯 👍 🙌 🧠 📚 🚀 🌙 ☕ 🎮 📱 🎧 ⚽ 🍕".split(" ");
 function toggleEmoji(e){
  let box=document.getElementById("emoji");
- box.style.display=box.style.display==="block"?"none":"block";
- box.style.top=e.target.offsetTop+30+"px";
- box.style.left=e.target.offsetLeft+"px";
- box.innerHTML=emojis.map(em=>`<span onclick="addEmoji('${em}')">${em}</span>`).join("");
+ box.style.display=box.style.display==='block'?'none':'block';
+ box.style.top=e.target.offsetTop+30+'px';
+ box.style.left=e.target.offsetLeft+'px';
+ box.innerHTML=emojis.map(em=>`<span onclick="addEmoji('${em}')">${em}</span>`).join('');
 }
-
 function addEmoji(e){document.getElementById("note").value+=e;}
 
 function addImage(e){
@@ -278,7 +168,7 @@ function saveNote(){
  n.push({text:t,date:new Date().toLocaleDateString()});
  localStorage.setItem("notes",JSON.stringify(n));
  document.getElementById("note").value="";
- alert("Saved ✨");
+ alert("Saved");
 }
 
 function displayNotes(){
@@ -287,8 +177,7 @@ function displayNotes(){
  let d=document.getElementById("dateFilter").value;
  let c=document.getElementById("entries");
  c.innerHTML="";
-
- notes.slice().reverse().forEach((n,i)=>{
+ notes.slice().reverse().forEach(n=>{
   if(s && !n.text.toLowerCase().includes(s)) return;
   if(d && n.date!==new Date(d).toLocaleDateString()) return;
   let t=n.text.replace(/\[img:(.*?)\]/g,'<img src="$1">');

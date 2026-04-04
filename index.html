@@ -1,194 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diaries</title>
 <style>
-:root{--bg1:#0f172a;--bg2:#1e293b;--accent:#6366f1;--accent2:#22d3ee;--card:rgba(255,255,255,0.08);} 
-body{margin:0;font-family:'Segoe UI',sans-serif;background:radial-gradient(circle at top,var(--bg2),var(--bg1));color:white;}
-header{text-align:center;padding:25px;font-size:2.6rem;font-weight:bold;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+:root{
+  --bg:#0f172a;
+  --panel:#111827;
+  --card:#1f2937;
+  --accent:#6366f1;
+}
 
-/* SETTINGS BUTTON */
-.settings-btn{position:fixed;top:15px;right:15px;font-size:20px;background:var(--card);padding:10px;border-radius:50%;cursor:pointer;}
+body{
+  margin:0;
+  font-family:Segoe UI;
+  background:#0f172a;
+  color:white;
+}
 
-.settings-panel{position:fixed;top:60px;right:15px;background:var(--card);padding:20px;border-radius:15px;display:none;width:260px;backdrop-filter:blur(10px);}
-.settings-panel h3{margin-top:0;}
-.settings-panel input{width:90%;}
+/* LAYOUT */
+.app{
+  display:grid;
+  grid-template-columns:250px 1fr;
+  height:100vh;
+}
 
-nav{display:flex;justify-content:center;gap:10px;margin:10px;flex-wrap:wrap;}
-nav button{padding:10px 15px;border:none;border-radius:999px;background:var(--card);color:white;cursor:pointer;}
+.sidebar{
+  background:var(--panel);
+  padding:20px;
+  border-right:1px solid rgba(255,255,255,0.1);
+}
 
-.section{display:none;padding:20px;max-width:900px;margin:auto;}
-.active{display:block;}
+.sidebar h2{margin-bottom:20px;}
 
-.card{background:var(--card);padding:15px;border-radius:15px;}
-textarea{width:100%;height:120px;border-radius:10px;border:none;padding:10px;}
-.btn{padding:8px 12px;border:none;border-radius:8px;background:var(--accent);color:white;cursor:pointer;margin-top:5px;}
-.entry{background:var(--card);padding:10px;border-radius:10px;margin:10px 0;}
-.entry img{max-width:100%;border-radius:10px;margin-top:8px;}
+.sidebar button{
+  width:100%;
+  margin:8px 0;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:var(--card);
+  color:white;
+  cursor:pointer;
+}
 
-.lock-screen{position:fixed;inset:0;background:#000;display:flex;justify-content:center;align-items:center;flex-direction:column;}
+.main{
+  padding:20px;
+  overflow-y:auto;
+}
 
-.loading{display:none;font-size:1.5rem;animation:spin 1s linear infinite;}
-@keyframes spin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
 
-.popup{position:fixed;top:20px;right:20px;background:#ef4444;padding:12px;border-radius:10px;display:none;}
+.settings-btn{
+  cursor:pointer;
+  background:var(--card);
+  padding:8px 12px;
+  border-radius:8px;
+}
 
-.emoji-popup{position:absolute;background:#1e293b;padding:10px;border-radius:10px;display:none;max-height:200px;overflow:auto;}
+.settings{
+  position:absolute;
+  right:20px;
+  top:60px;
+  background:var(--panel);
+  padding:15px;
+  border-radius:10px;
+  display:none;
+  width:250px;
+}
+
+.card{
+  background:var(--card);
+  padding:15px;
+  border-radius:12px;
+}
+
+textarea{
+  width:100%;
+  height:120px;
+  border:none;
+  border-radius:8px;
+  padding:10px;
+}
+
+.btn{
+  background:var(--accent);
+  border:none;
+  padding:8px 12px;
+  border-radius:6px;
+  color:white;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+.entry{
+  background:var(--card);
+  padding:10px;
+  border-radius:10px;
+  margin:10px 0;
+}
+
+.entry img{max-width:100%;border-radius:8px;margin-top:8px;}
+
+/* LOCK */
+.lock{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+.time{font-size:3rem;}
+.date{margin-bottom:20px;}
+
+/* EMOJI */
+.emoji-btn{position:absolute;right:10px;top:10px;cursor:pointer;}
+.emoji-popup{position:absolute;right:10px;top:40px;background:#000;padding:10px;border-radius:10px;display:none;max-height:200px;overflow:auto;}
 .emoji-popup span{padding:5px;cursor:pointer;}
+
 </style>
 </head>
 <body>
 
-<div class="settings-btn" onclick="toggleSettings()">⚙️</div>
-
-<div id="settings" class="settings-panel">
-<h3>⚙️ Settings</h3>
-
-<label>Enable Animations</label>
-<input type="checkbox" id="animToggle" checked onchange="toggleAnim()"><br><br>
-
-<label>Dark Mode</label>
-<input type="checkbox" id="themeToggle" checked onchange="toggleTheme()"><br><br>
-
-<h4>🔑 Change Password</h4>
-<input type="password" id="newPass" placeholder="New password"><br>
-<button class="btn" onclick="changePass()">Update</button><br><br>
-
-<button class="btn" onclick="clearData()">🗑 Clear Diary</button>
-</div>
-
-<div id="lock" class="lock-screen">
-<h2>🔐 Enter Password</h2>
+<div id="lock" class="lock">
+<div class="time" id="time"></div>
+<div class="date" id="date"></div>
 <input type="password" id="pass">
-<button class="btn" onclick="unlock()">Enter</button>
-<div id="loading" class="loading">🔄</div>
+<button class="btn" onclick="unlock()">Unlock</button>
 </div>
 
-<div id="popup" class="popup">❌ Wrong Password</div>
+<div class="app">
 
-<header>📔 Diaries</header>
+<div class="sidebar">
+<h2>📔 Diaries</h2>
+<button onclick="show('compose')">✍️ Compose</button>
+<button onclick="show('past')">📜 Past Diaries</button>
+<button onclick="show('about')">👤 About</button>
+</div>
 
-<nav>
-<button onclick="showSection('compose')">Compose</button>
-<button onclick="showSection('past')">Past Diaries</button>
-<button onclick="showSection('about')">About</button>
-</nav>
+<div class="main">
+<div class="topbar">
+<h3 id="title">Compose</h3>
+<div class="settings-btn" onclick="toggleSettings()">⚙️</div>
+</div>
 
-<div id="compose" class="section active">
-<div class="card">
-<button onclick="toggleEmoji(event)">😊</button>
-<button onclick="imgInput.click()">➕</button>
-<input type="file" id="imgInput" style="display:none" onchange="addImage(event)">
+<div id="settings" class="settings">
+<h4>Settings</h4>
+<input type="password" id="newPass" placeholder="New password"><br>
+<button class="btn" onclick="changePass()">Change Password</button><br>
+<button class="btn" onclick="clearData()">Clear Data</button>
+</div>
+
+<div id="compose" class="card">
+<div style="position:relative">
+<div class="emoji-btn" onclick="toggleEmoji()">😊</div>
 <div id="emoji" class="emoji-popup"></div>
 <textarea id="note"></textarea>
-<button class="btn" onclick="saveNote()">Save</button>
 </div>
+<button class="btn" onclick="save()">Save</button>
 </div>
 
-<div id="past" class="section">
-<input id="search" placeholder="Search..." oninput="displayNotes()">
-<input type="date" id="dateFilter" onchange="displayNotes()">
+<div id="past" class="card" style="display:none">
+<input id="search" placeholder="Search" oninput="display()">
+<input type="date" id="dateFilter" onchange="display()">
 <div id="entries"></div>
 </div>
 
-<div id="about" class="section">
-<div class="card">
+<div id="about" class="card" style="display:none">
 <p><b>Name:</b> Adhvik Mahesh</p>
 <p><b>Grade:</b> 9</p>
+</div>
+
 </div>
 </div>
 
 <script>
-if(!localStorage.getItem("pass")) localStorage.setItem("pass","adhvik_diary");
-
-function toggleSettings(){
- let s=document.getElementById("settings");
- s.style.display=s.style.display==='block'?'none':'block';
-}
-
-function changePass(){
- let p=document.getElementById("newPass").value;
- if(!p) return alert("Enter password");
- localStorage.setItem("pass",p);
- alert("Password changed");
-}
-
-function clearData(){
- if(confirm("Delete all entries?")){
-  localStorage.removeItem("notes");
-  alert("Cleared");
- }
-}
-
-function toggleAnim(){
- let on=document.getElementById("animToggle").checked;
- document.body.style.transition=on?"all 0.3s":"none";
-}
-
-function toggleTheme(){
- let dark=document.getElementById("themeToggle").checked;
- document.body.style.background=dark?"radial-gradient(circle,#1e293b,#0f172a)":"#fff";
- document.body.style.color=dark?"white":"black";
-}
+if(!localStorage.pass) localStorage.pass="adhvik_diary";
 
 function unlock(){
- let input=document.getElementById("pass").value;
- if(input===localStorage.getItem("pass")){
-  document.getElementById("loading").style.display="block";
-  setTimeout(()=>document.getElementById("lock").style.display="none",2000);
- } else {
-  let p=document.getElementById("popup");
-  p.style.display="block";
-  setTimeout(()=>p.style.display="none",2000);
- }
+ if(pass.value===localStorage.pass){lock.style.display="none"}
+ else alert("Wrong Password")
 }
+
+function changePass(){localStorage.pass=newPass.value;alert("Changed")}
+function clearData(){localStorage.removeItem('notes');alert("Cleared")}
+
+function toggleSettings(){settings.style.display=settings.style.display==='block'?'none':'block'}
+
+function updateTime(){
+ let d=new Date();
+ time.innerText=d.toLocaleTimeString('en-SG');
+ date.innerText=d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long'});
+}
+setInterval(updateTime,1000);updateTime();
 
 const emojis="😄 😂 😍 😭 😎 🤯 🥳 🤩 😈 👻 💀 🔥 ✨ ❤️ 💯 👍 🙌 🧠 📚 🚀 🌙 ☕ 🎮 📱 🎧 ⚽ 🍕".split(" ");
-function toggleEmoji(e){
- let box=document.getElementById("emoji");
- box.style.display=box.style.display==='block'?'none':'block';
- box.style.top=e.target.offsetTop+30+'px';
- box.style.left=e.target.offsetLeft+'px';
- box.innerHTML=emojis.map(em=>`<span onclick="addEmoji('${em}')">${em}</span>`).join('');
+function toggleEmoji(){
+ emoji.style.display=emoji.style.display==='block'?'none':'block';
+ emoji.innerHTML=emojis.map(e=>`<span onclick="add('${e}')">${e}</span>`).join('');
 }
-function addEmoji(e){document.getElementById("note").value+=e;}
+function add(e){note.value+=e}
 
-function addImage(e){
- let r=new FileReader();
- r.onload=x=>document.getElementById("note").value+=`\n[img:${x.target.result}]`;
- r.readAsDataURL(e.target.files[0]);
+function save(){
+ let n=JSON.parse(localStorage.notes||"[]");
+ n.push({text:note.value,date:new Date().toLocaleDateString()});
+ localStorage.notes=JSON.stringify(n);
+ note.value="";
 }
 
-function saveNote(){
- let t=document.getElementById("note").value;
- if(!t) return;
- let n=JSON.parse(localStorage.getItem("notes")||"[]");
- n.push({text:t,date:new Date().toLocaleDateString()});
- localStorage.setItem("notes",JSON.stringify(n));
- document.getElementById("note").value="";
- alert("Saved");
-}
-
-function displayNotes(){
- let notes=JSON.parse(localStorage.getItem("notes")||"[]");
- let s=document.getElementById("search").value.toLowerCase();
- let d=document.getElementById("dateFilter").value;
- let c=document.getElementById("entries");
- c.innerHTML="";
- notes.slice().reverse().forEach(n=>{
-  if(s && !n.text.toLowerCase().includes(s)) return;
-  if(d && n.date!==new Date(d).toLocaleDateString()) return;
-  let t=n.text.replace(/\[img:(.*?)\]/g,'<img src="$1">');
-  c.innerHTML+=`<div class='entry'><small>${n.date}</small><p>${t}</p></div>`;
+function display(){
+ let n=JSON.parse(localStorage.notes||"[]");
+ let s=search.value.toLowerCase();
+ let d=dateFilter.value;
+ entries.innerHTML="";
+ n.slice().reverse().forEach((e,i)=>{
+  if(s && !e.text.toLowerCase().includes(s)) return;
+  if(d && e.date!==new Date(d).toLocaleDateString()) return;
+  let t=e.text.replace(/\[img:(.*?)\]/g,'<img src="$1">');
+  entries.innerHTML+=`<div class='entry'>${e.date}<p contenteditable onblur="edit(${i},this.innerText)">${t}</p><button onclick="del(${i})">Delete</button></div>`;
  });
 }
 
-function showSection(id){
- document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
- document.getElementById(id).classList.add('active');
- if(id==='past') displayNotes();
+function del(i){let n=JSON.parse(localStorage.notes);n.splice(i,1);localStorage.notes=JSON.stringify(n);display()}
+function edit(i,text){let n=JSON.parse(localStorage.notes);n[i].text=text;localStorage.notes=JSON.stringify(n)}
+
+function show(id){
+ compose.style.display='none';
+ past.style.display='none';
+ about.style.display='none';
+ document.getElementById(id).style.display='block';
+ title.innerText=id.charAt(0).toUpperCase()+id.slice(1);
+ if(id==='past') display();
 }
 </script>
 

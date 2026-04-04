@@ -1,186 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Diaries</title>
-  <style>
-    :root{
-      --bg1:#1e1e2f; --bg2:#2b2b45; --card:rgba(255,255,255,0.08); --accent:#7aa2ff; --accent2:#9b7aff;
-    }
-
-    body { margin:0; font-family:Arial; background:linear-gradient(135deg,var(--bg1),var(--bg2)); color:white; }
-
-    header { text-align:center; padding:30px 20px 5px; font-size:2.6rem; font-weight:bold; }
-    .subtitle{ text-align:center; opacity:0.8; margin-bottom:10px; }
-
-    nav { display:flex; justify-content:center; gap:12px; margin:15px; flex-wrap:wrap; }
-    nav button { padding:10px 16px; border:none; border-radius:999px; cursor:pointer; font-weight:bold; background:var(--card); color:white; transition:0.2s; }
-    nav button:hover { background:linear-gradient(45deg,var(--accent),var(--accent2)); transform:translateY(-2px); }
-
-    .section { display:none; padding:20px; max-width:900px; margin:auto; animation:fade 0.25s ease; }
-    .active { display:block; }
-
-    @keyframes fade { from{opacity:0; transform:translateY(10px);} to{opacity:1;} }
-
-    .card { background:var(--card); padding:18px; border-radius:16px; backdrop-filter:blur(10px); box-shadow:0 10px 30px rgba(0,0,0,0.3); }
-
-    textarea { width:100%; height:130px; padding:12px; border-radius:12px; border:none; }
-
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
-    .btn { padding:10px 16px; border:none; border-radius:10px; cursor:pointer; font-weight:bold; background:var(--accent); color:white; }
-    .btn.secondary{ background:rgba(255,255,255,0.15);}    
-
-    .entry { background:var(--card); margin:10px 0; padding:14px; border-radius:12px; position:relative; }
-    .entry img { max-width:100%; border-radius:10px; margin-top:10px; }
-
-    .entry::before{
-      content:"✨";
-      position:absolute;
-      top:-8px; right:-8px;
-      font-size:18px;
-    }
-
-    .emoji-popup { position:absolute; background:#2b2b45; border-radius:10px; padding:10px; display:none; max-width:250px; box-shadow:0 5px 15px rgba(0,0,0,0.5); }
-    .emoji-popup span { font-size:20px; cursor:pointer; padding:5px; display:inline-block; }
-
-    .about-box { background:var(--card); padding:20px; border-radius:12px; }
-
-    input[type="text"]{
-      padding:8px; border-radius:8px; border:none;
-    }
-
-    footer{ text-align:center; opacity:0.7; margin:30px 0; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diaries</title>
+<style>
+:root{--bg1:#1e1e2f;--bg2:#2b2b45;--card:rgba(255,255,255,0.08);--accent:#7aa2ff;}
+body{margin:0;font-family:Arial;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:white;}
+header{text-align:center;padding:25px;font-size:2.5rem;font-weight:bold;}
+nav{display:flex;justify-content:center;gap:10px;margin:10px;flex-wrap:wrap;}
+nav button{padding:10px 15px;border:none;border-radius:999px;background:var(--card);color:white;cursor:pointer;}
+.section{display:none;padding:20px;max-width:900px;margin:auto;}
+.active{display:block;}
+.card{background:var(--card);padding:15px;border-radius:15px;}
+textarea{width:100%;height:120px;border-radius:10px;border:none;padding:10px;}
+.btn{padding:8px 12px;border:none;border-radius:8px;background:var(--accent);color:white;cursor:pointer;}
+.entry{background:var(--card);padding:10px;border-radius:10px;margin:10px 0;}
+.entry img{max-width:100%;border-radius:10px;margin-top:8px;}
+.emoji-popup{position:absolute;background:#2b2b45;padding:10px;border-radius:10px;display:none;max-width:300px;max-height:200px;overflow-y:auto;}
+.emoji-popup span{cursor:pointer;padding:4px;font-size:18px;display:inline-block;}
+input{padding:8px;border-radius:8px;border:none;margin:5px;}
+.lock-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;justify-content:center;align-items:center;flex-direction:column;}
+</style>
 </head>
 <body>
 
-  <header>📔 Diaries</header>
-  <div class="subtitle">Capture thoughts. Reflect. Grow.</div>
+<div id="lock" class="lock-screen">
+<h2>🔐 Enter Password</h2>
+<input type="password" id="pass">
+<button class="btn" onclick="unlock()">Enter</button>
+</div>
 
-  <nav>
-    <button onclick="showSection('compose')">✍️ Compose</button>
-    <button onclick="showSection('view')">📜 View Past</button>
-    <button onclick="showSection('about')">👤 About Me</button>
-  </nav>
+<header>📔 Diaries</header>
 
-  <!-- COMPOSE -->
-  <div id="compose" class="section active">
-    <div class="card">
-      <h2>✍️ Compose a New Diary</h2>
+<nav>
+<button onclick="showSection('compose')">Compose</button>
+<button onclick="showSection('view')">View</button>
+<button onclick="showSection('about')">About</button>
+</nav>
 
-      <div class="row">
-        <button class="btn secondary" onclick="toggleEmojiPopup(event)">😊</button>
-        <button class="btn secondary" onclick="document.getElementById('imgInput').click()">➕ Image</button>
-        <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="addImage(event)">
-      </div>
+<div id="compose" class="section active">
+<div class="card">
+<h2>New Entry</h2>
+<button onclick="toggleEmoji(event)">😊</button>
+<button onclick="imgInput.click()">➕ Image</button>
+<input type="file" id="imgInput" style="display:none" onchange="addImage(event)">
+<div id="emoji" class="emoji-popup"></div>
+<textarea id="note"></textarea>
+<button class="btn" onclick="saveNote()">Save</button>
+</div>
+</div>
 
-      <div id="emojiPopup" class="emoji-popup"></div>
+<div id="view" class="section">
+<h2>Entries</h2>
+<input type="text" id="search" placeholder="Search..." oninput="displayNotes()">
+<input type="date" id="dateFilter" onchange="displayNotes()">
+<div id="entries"></div>
+</div>
 
-      <textarea id="note" placeholder="Write your diary..."></textarea>
+<div id="about" class="section">
+<div class="card">
+<h2>About Me</h2>
+<p><b>Name:</b> Adhvik Mahesh</p>
+<p><b>Grade:</b> 9</p>
+<p><b>🚀 Curious Mind, Growing Journey</b><br>
+A student who enjoys learning, experimenting, and improving step by step. Always exploring ideas and building things while growing every day.</p>
+</div>
+</div>
 
-      <div class="row">
-        <button class="btn" onclick="saveNote()">Save Entry</button>
-        <button class="btn secondary" onclick="clearDraft()">Clear</button>
-      </div>
-    </div>
-  </div>
+<script>
+// PASSWORD
+if(!localStorage.getItem("pass")) localStorage.setItem("pass","adhvik_diary");
+function unlock(){
+ if(document.getElementById("pass").value===localStorage.getItem("pass")){
+  document.getElementById("lock").style.display="none";
+ } else alert("Wrong password");
+}
 
-  <!-- VIEW -->
-  <div id="view" class="section">
-    <h2>📜 Past Entries</h2>
+// BIG EMOJI LIST
+const emojiList = "😄 😂 😍 😭 😎 😡 🤯 🥶 😴 🤔 🫠 🥳 🤩 🥺 😈 👻 💀 🔥 ✨ ⭐ 🌟 💫 ⚡ ❤️ 💔 💖 💯 👍 👎 🙌 👏 🤝 🙏 🧠 📚 ✏️ 📝 🎯 🚀 🌙 ☀️ 🌧️ ⛈️ 🌈 🍔 🍕 🍟 🍜 🍩 🍫 ☕ 🎮 🖥️ 📱 🎧 🎵 🎶 ⚽ 🏀 🏆 🥇".split(" ");
 
-    <div class="row">
-      <input type="text" id="search" placeholder="Search entries..." oninput="displayNotes()">
-    </div>
+function toggleEmoji(e){
+ let box=document.getElementById("emoji");
+ box.style.display=box.style.display==="block"?"none":"block";
+ box.style.top=e.target.offsetTop+30+"px";
+ box.style.left=e.target.offsetLeft+"px";
+ box.innerHTML = emojiList.map(em=>`<span onclick="addEmoji('${em}')">${em}</span>`).join("");
+}
 
-    <div id="entries"></div>
-  </div>
+function addEmoji(e){document.getElementById("note").value+=e;}
 
-  <!-- ABOUT -->
-  <div id="about" class="section">
-    <h2>👤 About Me</h2>
-    <div class="about-box">
-      <p><strong>Name:</strong> Adhvik Mahesh</p>
-      <p><strong>Grade:</strong> 9</p>
+// IMAGE
+function addImage(e){
+ let reader=new FileReader();
+ reader.onload=x=>document.getElementById("note").value+=`\n[img:${x.target.result}]`;
+ reader.readAsDataURL(e.target.files[0]);
+}
 
-      <h3>🚀 Curious Mind, Growing Journey</h3>
-      <p>
-        I'm a student who enjoys exploring how things work, especially in technology and learning. I like building small projects, improving step by step, and figuring things out through experimentation. I'm always trying to get better, whether it's in school subjects or new skills. This diary is where I capture ideas, thoughts, and progress as I continue learning and growing.
-      </p>
-    </div>
-  </div>
+// SAVE
+function saveNote(){
+ let text=document.getElementById("note").value;
+ if(!text) return;
+ let notes=JSON.parse(localStorage.getItem("notes")||"[]");
+ notes.push({text,date:new Date().toLocaleDateString()});
+ localStorage.setItem("notes",JSON.stringify(notes));
+ document.getElementById("note").value="";
+ alert("Saved");
+}
 
-  <footer>Made with ❤️ using GitHub Pages</footer>
+// DISPLAY
+function displayNotes(){
+ let notes=JSON.parse(localStorage.getItem("notes")||"[]");
+ let s=document.getElementById("search").value.toLowerCase();
+ let d=document.getElementById("dateFilter").value;
+ let c=document.getElementById("entries");
+ c.innerHTML="";
+ notes.slice().reverse().forEach((n,i)=>{
+  if(s && !n.text.toLowerCase().includes(s)) return;
+  if(d && n.date!==new Date(d).toLocaleDateString()) return;
+  let t=n.text.replace(/\[img:(.*?)\]/g,'<img src="$1">');
+  c.innerHTML+=`<div class='entry'><small>${n.date}</small><p>${t}</p></div>`;
+ });
+}
 
-  <script>
-    const emojiList = "😄 😂 😍 😭 😎 🔥 💀 👍 ❤️ 📚 ✨ 🤔 🧠 🚀 🌙 ☕".split(" ");
-
-    function toggleEmojiPopup(e) {
-      const popup = document.getElementById("emojiPopup");
-      popup.style.display = popup.style.display === "block" ? "none" : "block";
-      popup.style.top = e.target.offsetTop + 40 + "px";
-      popup.style.left = e.target.offsetLeft + "px";
-      popup.innerHTML = emojiList.map(em => `<span onclick="addEmoji('${em}')">${em}</span>`).join("");
-    }
-
-    function addEmoji(e) { document.getElementById("note").value += e; }
-
-    function addImage(event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById("note").value += `\n[image:${e.target.result}]`;
-      }
-      reader.readAsDataURL(file);
-    }
-
-    function showSection(id) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      if (id === 'view') displayNotes();
-    }
-
-    function clearDraft(){ document.getElementById("note").value = ""; }
-
-    function saveNote() {
-      let note = document.getElementById("note").value;
-      if (!note) return;
-      let notes = JSON.parse(localStorage.getItem("notes") || "[]");
-      notes.push({ text: note, date: new Date().toLocaleString() });
-      localStorage.setItem("notes", JSON.stringify(notes));
-      document.getElementById("note").value = "";
-      alert("Saved!");
-    }
-
-    function displayNotes() {
-      let notes = JSON.parse(localStorage.getItem("notes") || "[]");
-      let search = document.getElementById("search").value.toLowerCase();
-      let container = document.getElementById("entries");
-      container.innerHTML = "";
-
-      notes.slice().reverse().forEach((n, i) => {
-        if (!n.text.toLowerCase().includes(search)) return;
-        let content = n.text.replace(/\[image:(.*?)\]/g, '<img src="$1">');
-
-        container.innerHTML += `
-          <div class="entry">
-            <small>${n.date}</small>
-            <p>${content}</p>
-            <button onclick="deleteNote(${notes.length - 1 - i})">Delete</button>
-          </div>
-        `;
-      });
-    }
-
-    function deleteNote(i) {
-      let notes = JSON.parse(localStorage.getItem("notes") || "[]");
-      notes.splice(i, 1);
-      localStorage.setItem("notes", JSON.stringify(notes));
-      displayNotes();
-    }
-  </script>
+// NAV
+function showSection(id){
+ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ if(id==='view') displayNotes();
+}
+</script>
 
 </body>
 </html>

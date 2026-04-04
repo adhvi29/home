@@ -6,23 +6,34 @@
 <title>Diaries</title>
 <style>
 :root{
-  --bg:#0f172a;
-  --panel:#111827;
-  --card:#1f2937;
+  --panel:rgba(17,24,39,0.92);
+  --card:rgba(31,41,55,0.85);
   --accent:#6366f1;
 }
 
 body{
   margin:0;
   font-family:Segoe UI;
-  background:#0f172a;
   color:white;
+  min-height:100vh;
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
 }
 
-/* LAYOUT */
+/* DARK OVERLAY FOR READABILITY */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  z-index:-1;
+}
+
+/* APP LAYOUT */
 .app{
   display:grid;
-  grid-template-columns:250px 1fr;
+  grid-template-columns:260px 1fr;
   height:100vh;
 }
 
@@ -30,10 +41,10 @@ body{
   background:var(--panel);
   padding:20px;
   border-right:1px solid rgba(255,255,255,0.1);
+  backdrop-filter:blur(10px);
 }
 
-.sidebar h2{margin-bottom:20px;}
-
+.sidebar h2{margin-top:0;}
 .sidebar button{
   width:100%;
   margin:8px 0;
@@ -54,7 +65,7 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:20px;
+  margin-bottom:15px;
 }
 
 .settings-btn{
@@ -72,13 +83,15 @@ body{
   padding:15px;
   border-radius:10px;
   display:none;
-  width:250px;
+  width:260px;
+  z-index:10;
 }
 
 .card{
   background:var(--card);
   padding:15px;
   border-radius:12px;
+  backdrop-filter:blur(10px);
 }
 
 textarea{
@@ -87,6 +100,8 @@ textarea{
   border:none;
   border-radius:8px;
   padding:10px;
+  background:rgba(0,0,0,0.3);
+  color:white;
 }
 
 .btn{
@@ -108,139 +123,215 @@ textarea{
 
 .entry img{max-width:100%;border-radius:8px;margin-top:8px;}
 
-/* LOCK */
+/* LOCKSCREEN FIXED (NO GLITCH) */
 .lock{
   position:fixed;
   inset:0;
-  background:black;
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
+  background-size:cover;
+  background-position:center;
+  z-index:9999;
+}
+
+.lock::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+}
+
+.lock > *{
+  position:relative;
 }
 
 .time{font-size:3rem;}
-.date{margin-bottom:20px;}
+.date{margin-bottom:20px;opacity:0.9;}
+
+input[type="password"]{
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  outline:none;
+}
 
 /* EMOJI */
-.emoji-btn{position:absolute;right:10px;top:10px;cursor:pointer;}
-.emoji-popup{position:absolute;right:10px;top:40px;background:#000;padding:10px;border-radius:10px;display:none;max-height:200px;overflow:auto;}
-.emoji-popup span{padding:5px;cursor:pointer;}
+.emoji-btn{
+  position:absolute;
+  right:10px;
+  top:10px;
+  cursor:pointer;
+}
+
+.emoji-popup{
+  position:absolute;
+  right:10px;
+  top:40px;
+  background:#000;
+  padding:10px;
+  border-radius:10px;
+  display:none;
+  max-height:200px;
+  overflow:auto;
+}
+
+.emoji-popup span{
+  padding:5px;
+  cursor:pointer;
+  display:inline-block;
+}
 
 </style>
 </head>
 <body>
 
+<!-- LOCKSCREEN -->
 <div id="lock" class="lock">
-<div class="time" id="time"></div>
-<div class="date" id="date"></div>
-<input type="password" id="pass">
-<button class="btn" onclick="unlock()">Unlock</button>
+  <div class="time" id="time"></div>
+  <div class="date" id="date"></div>
+  <input type="password" id="pass" placeholder="Enter password">
+  <button class="btn" onclick="unlock()">Unlock</button>
 </div>
 
 <div class="app">
 
-<div class="sidebar">
-<h2>📔 Diaries</h2>
-<button onclick="show('compose')">✍️ Compose</button>
-<button onclick="show('past')">📜 Past Diaries</button>
-<button onclick="show('about')">👤 About</button>
-</div>
+  <div class="sidebar">
+    <h2>📔 Diaries</h2>
+    <button onclick="show('compose')">✍️ Compose</button>
+    <button onclick="show('past')">📜 Past</button>
+    <button onclick="show('about')">👤 About</button>
+  </div>
 
-<div class="main">
-<div class="topbar">
-<h3 id="title">Compose</h3>
-<div class="settings-btn" onclick="toggleSettings()">⚙️</div>
-</div>
+  <div class="main">
 
-<div id="settings" class="settings">
-<h4>Settings</h4>
-<input type="password" id="newPass" placeholder="New password"><br>
-<button class="btn" onclick="changePass()">Change Password</button><br>
-<button class="btn" onclick="clearData()">Clear Data</button>
-</div>
+    <div class="topbar">
+      <h3 id="title">Compose</h3>
+      <div class="settings-btn" onclick="toggleSettings()">⚙️</div>
+    </div>
 
-<div id="compose" class="card">
-<div style="position:relative">
-<div class="emoji-btn" onclick="toggleEmoji()">😊</div>
-<div id="emoji" class="emoji-popup"></div>
-<textarea id="note"></textarea>
-</div>
-<button class="btn" onclick="save()">Save</button>
-</div>
+    <div id="settings" class="settings">
+      <h4>Settings</h4>
+      <input type="password" id="newPass" placeholder="New password">
+      <button class="btn" onclick="changePass()">Change</button>
+      <button class="btn" onclick="clearData()">Clear Data</button>
+    </div>
 
-<div id="past" class="card" style="display:none">
-<input id="search" placeholder="Search" oninput="display()">
-<input type="date" id="dateFilter" onchange="display()">
-<div id="entries"></div>
-</div>
+    <div id="compose" class="card">
+      <div style="position:relative">
+        <div class="emoji-btn" onclick="toggleEmoji()">😊</div>
+        <div id="emoji" class="emoji-popup"></div>
+        <textarea id="note"></textarea>
+      </div>
+      <button class="btn" onclick="save()">Save</button>
+    </div>
 
-<div id="about" class="card" style="display:none">
-<p><b>Name:</b> Adhvik Mahesh</p>
-<p><b>Grade:</b> 9</p>
-</div>
+    <div id="past" class="card" style="display:none">
+      <input id="search" placeholder="Search" oninput="display()">
+      <input type="date" id="dateFilter" onchange="display()">
+      <div id="entries"></div>
+    </div>
 
-</div>
+    <div id="about" class="card" style="display:none">
+      <p><b>Name:</b> Adhvik Mahesh</p>
+      <p><b>Grade:</b> 9</p>
+    </div>
+
+  </div>
 </div>
 
 <script>
+// PASSWORD
 if(!localStorage.pass) localStorage.pass="adhvik_diary";
 
 function unlock(){
- if(pass.value===localStorage.pass){lock.style.display="none"}
- else alert("Wrong Password")
+  if(pass.value===localStorage.pass){
+    lock.style.display="none";
+  } else {
+    alert("❌ Wrong Password");
+  }
 }
 
 function changePass(){localStorage.pass=newPass.value;alert("Changed")}
 function clearData(){localStorage.removeItem('notes');alert("Cleared")}
 
-function toggleSettings(){settings.style.display=settings.style.display==='block'?'none':'block'}
-
+// TIME
 function updateTime(){
- let d=new Date();
- time.innerText=d.toLocaleTimeString('en-SG');
- date.innerText=d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long'});
+  let d=new Date();
+  time.innerText=d.toLocaleTimeString('en-SG');
+  date.innerText=d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long'});
 }
 setInterval(updateTime,1000);updateTime();
 
+// BACKGROUND FIX
+const bgs=[
+"https://picsum.photos/1920/1080?random=1",
+"https://picsum.photos/1920/1080?random=2",
+"https://picsum.photos/1920/1080?random=3"
+];
+
+function setBg(){
+  let bg=bgs[Math.floor(Math.random()*bgs.length)];
+  document.body.style.backgroundImage=`url(${bg})`;
+  document.getElementById('lock').style.backgroundImage=`url(${bg})`;
+}
+setBg();
+
+// SETTINGS
+function toggleSettings(){
+  settings.style.display=settings.style.display==='block'?'none':'block';
+}
+
+// EMOJIS
 const emojis="😄 😂 😍 😭 😎 🤯 🥳 🤩 😈 👻 💀 🔥 ✨ ❤️ 💯 👍 🙌 🧠 📚 🚀 🌙 ☕ 🎮 📱 🎧 ⚽ 🍕".split(" ");
 function toggleEmoji(){
- emoji.style.display=emoji.style.display==='block'?'none':'block';
- emoji.innerHTML=emojis.map(e=>`<span onclick="add('${e}')">${e}</span>`).join('');
+  emoji.style.display=emoji.style.display==='block'?'none':'block';
+  emoji.innerHTML=emojis.map(e=>`<span onclick="add('${e}')">${e}</span>`).join('');
 }
 function add(e){note.value+=e}
 
+// SAVE + LOAD
 function save(){
- let n=JSON.parse(localStorage.notes||"[]");
- n.push({text:note.value,date:new Date().toLocaleDateString()});
- localStorage.notes=JSON.stringify(n);
- note.value="";
+  let n=JSON.parse(localStorage.notes||"[]");
+  n.push({text:note.value,date:new Date().toLocaleDateString()});
+  localStorage.notes=JSON.stringify(n);
+  note.value="";
 }
 
 function display(){
- let n=JSON.parse(localStorage.notes||"[]");
- let s=search.value.toLowerCase();
- let d=dateFilter.value;
- entries.innerHTML="";
- n.slice().reverse().forEach((e,i)=>{
-  if(s && !e.text.toLowerCase().includes(s)) return;
-  if(d && e.date!==new Date(d).toLocaleDateString()) return;
-  let t=e.text.replace(/\[img:(.*?)\]/g,'<img src="$1">');
-  entries.innerHTML+=`<div class='entry'>${e.date}<p contenteditable onblur="edit(${i},this.innerText)">${t}</p><button onclick="del(${i})">Delete</button></div>`;
- });
+  let n=JSON.parse(localStorage.notes||"[]");
+  let s=search.value.toLowerCase();
+  let d=dateFilter.value;
+  entries.innerHTML="";
+
+  n.slice().reverse().forEach((e,i)=>{
+    if(s && !e.text.toLowerCase().includes(s)) return;
+    if(d && e.date!==new Date(d).toLocaleDateString()) return;
+
+    let t=e.text.replace(/\[img:(.*?)\]/g,'<img src="$1">');
+
+    entries.innerHTML+=`
+      <div class='entry'>
+        <small>${e.date}</small>
+        <p contenteditable onblur="edit(${i},this.innerText)">${t}</p>
+        <button onclick="del(${i})">Delete</button>
+      </div>`;
+  });
 }
 
 function del(i){let n=JSON.parse(localStorage.notes);n.splice(i,1);localStorage.notes=JSON.stringify(n);display()}
 function edit(i,text){let n=JSON.parse(localStorage.notes);n[i].text=text;localStorage.notes=JSON.stringify(n)}
 
 function show(id){
- compose.style.display='none';
- past.style.display='none';
- about.style.display='none';
- document.getElementById(id).style.display='block';
- title.innerText=id.charAt(0).toUpperCase()+id.slice(1);
- if(id==='past') display();
+  compose.style.display='none';
+  past.style.display='none';
+  about.style.display='none';
+  document.getElementById(id).style.display='block';
+  title.innerText=id.charAt(0).toUpperCase()+id.slice(1);
+  if(id==='past') display();
 }
+
 </script>
 
 </body>

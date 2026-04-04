@@ -3,95 +3,153 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Student Homepage</title>
+  <title>My Diary</title>
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(120deg, #4facfe, #00f2fe);
-      color: #fff;
-      text-align: center;
-    }
-
-    header {
-      padding: 50px 20px;
-    }
-
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-    }
-
-    p {
-      font-size: 1.2rem;
-      opacity: 0.9;
-    }
-
-    .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      padding: 40px;
-      max-width: 900px;
-      margin: auto;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 20px;
-      border-radius: 15px;
-      backdrop-filter: blur(10px);
-      transition: transform 0.2s;
-    }
-
-    .card:hover {
-      transform: scale(1.05);
-    }
-
-    footer {
-      margin-top: 40px;
-      padding: 20px;
-      font-size: 0.9rem;
-      opacity: 0.8;
-    }
-
-    a {
+      background: #1e1e2f;
       color: white;
-      text-decoration: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    textarea {
+      width: 80%;
+      height: 120px;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 5px;
       font-weight: bold;
+    }
+
+    .entry {
+      background: rgba(255,255,255,0.08);
+      margin: 10px auto;
+      padding: 10px;
+      width: 80%;
+      border-radius: 10px;
+      text-align: left;
+    }
+
+    .entry-buttons {
+      margin-top: 10px;
+    }
+
+    .emoji-bar {
+      margin: 10px;
+    }
+
+    .emoji-bar button {
+      font-size: 18px;
+      background: transparent;
+    }
+
+    .edit-area {
+      width: 100%;
+      margin-top: 10px;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Hi, I'm a Student 👋</h1>
-    <p>Welcome to my personal homepage built with GitHub Pages</p>
-  </header>
 
-  <section class="container">
-    <div class="card">
-      <h2>📚 Studies</h2>
-      <p>I am currently learning coding, math, and science.</p>
-    </div>
+  <h1>📔 My Diary</h1>
 
-    <div class="card">
-      <h2>💻 Projects</h2>
-      <p>I build small web projects and experiment with code.</p>
-    </div>
+  <div class="emoji-bar">
+    😄 😂 😍 😭 😎 🔥 💀 👍 ❤️ 🎮 📚 ✨
+    <br>
+    <button onclick="addEmoji('😄')">😄</button>
+    <button onclick="addEmoji('😂')">😂</button>
+    <button onclick="addEmoji('😍')">😍</button>
+    <button onclick="addEmoji('🔥')">🔥</button>
+    <button onclick="addEmoji('💀')">💀</button>
+    <button onclick="addEmoji('🎮')">🎮</button>
+    <button onclick="addEmoji('📚')">📚</button>
+  </div>
 
-    <div class="card">
-      <h2>🎯 Goals</h2>
-      <p>Become a skilled developer and create cool apps.</p>
-    </div>
+  <textarea id="note" placeholder="Write your thoughts..."></textarea><br>
 
-    <div class="card">
-      <h2>📫 Contact</h2>
-      <p>Add your email or GitHub profile here.</p>
-    </div>
-  </section>
+  <button onclick="saveNote()">Save</button>
+  <button onclick="clearAll()">Clear All</button>
 
-  <footer>
-    <p>Made with ❤️ using GitHub Pages</p>
-  </footer>
+  <h2>Entries</h2>
+  <div id="entries"></div>
+
+  <script>
+    function addEmoji(e) {
+      document.getElementById("note").value += e;
+    }
+
+    function saveNote() {
+      let note = document.getElementById("note").value;
+      if (!note) return;
+
+      let notes = JSON.parse(localStorage.getItem("notes") || "[]");
+      notes.push(note);
+
+      localStorage.setItem("notes", JSON.stringify(notes));
+      document.getElementById("note").value = "";
+
+      displayNotes();
+    }
+
+    function displayNotes() {
+      let notes = JSON.parse(localStorage.getItem("notes") || "[]");
+      let container = document.getElementById("entries");
+
+      container.innerHTML = "";
+
+      notes.forEach((n, i) => {
+        container.innerHTML += `
+          <div class="entry">
+            <div id="text-${i}">${n}</div>
+            <textarea id="edit-${i}" class="edit-area">${n}</textarea>
+            <div class="entry-buttons">
+              <button onclick="enableEdit(${i})">Edit</button>
+              <button onclick="saveEdit(${i})">Save</button>
+              <button onclick="deleteNote(${i})">Delete</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function deleteNote(i) {
+      let notes = JSON.parse(localStorage.getItem("notes") || "[]");
+      notes.splice(i, 1);
+      localStorage.setItem("notes", JSON.stringify(notes));
+      displayNotes();
+    }
+
+    function enableEdit(i) {
+      document.getElementById("edit-" + i).style.display = "block";
+    }
+
+    function saveEdit(i) {
+      let notes = JSON.parse(localStorage.getItem("notes") || "[]");
+      let newText = document.getElementById("edit-" + i).value;
+
+      notes[i] = newText;
+      localStorage.setItem("notes", JSON.stringify(notes));
+      displayNotes();
+    }
+
+    function clearAll() {
+      localStorage.removeItem("notes");
+      displayNotes();
+    }
+
+    displayNotes();
+  </script>
+
 </body>
 </html>

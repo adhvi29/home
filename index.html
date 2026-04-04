@@ -5,45 +5,210 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Diaries</title>
 <style>
-:root{--bg1:#1e1e2f;--bg2:#2b2b45;--card:rgba(255,255,255,0.08);--accent:#7aa2ff;}
-body{margin:0;font-family:Arial;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:white;}
-header{text-align:center;padding:25px;font-size:2.5rem;font-weight:bold;}
-nav{display:flex;justify-content:center;gap:10px;margin:10px;flex-wrap:wrap;}
-nav button{padding:10px 15px;border:none;border-radius:999px;background:var(--card);color:white;cursor:pointer;}
-.section{display:none;padding:20px;max-width:900px;margin:auto;}
+:root{
+  --bg1:#0f172a;
+  --bg2:#1e293b;
+  --accent:#6366f1;
+  --accent2:#22d3ee;
+  --card:rgba(255,255,255,0.08);
+}
+
+body{
+  margin:0;
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, var(--bg2), var(--bg1));
+  color:white;
+}
+
+header{
+  text-align:center;
+  padding:30px;
+  font-size:2.8rem;
+  font-weight:bold;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+nav{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:15px;
+  flex-wrap:wrap;
+}
+
+nav button{
+  padding:10px 18px;
+  border:none;
+  border-radius:999px;
+  background:var(--card);
+  color:white;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+nav button:hover{
+  background:linear-gradient(45deg,var(--accent),var(--accent2));
+  transform:translateY(-2px);
+}
+
+.section{
+  display:none;
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+  animation:fade 0.3s ease;
+}
 .active{display:block;}
-.card{background:var(--card);padding:15px;border-radius:15px;}
-textarea{width:100%;height:120px;border-radius:10px;border:none;padding:10px;}
-.btn{padding:8px 12px;border:none;border-radius:8px;background:var(--accent);color:white;cursor:pointer;}
-.entry{background:var(--card);padding:10px;border-radius:10px;margin:10px 0;}
-.entry img{max-width:100%;border-radius:10px;margin-top:8px;}
-.emoji-popup{position:absolute;background:#2b2b45;padding:10px;border-radius:10px;display:none;max-width:300px;max-height:200px;overflow-y:auto;}
-.emoji-popup span{cursor:pointer;padding:4px;font-size:18px;display:inline-block;}
-input{padding:8px;border-radius:8px;border:none;margin:5px;}
-.lock-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;justify-content:center;align-items:center;flex-direction:column;}
+
+@keyframes fade{
+  from{opacity:0;transform:translateY(10px);} to{opacity:1;}
+}
+
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:16px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+textarea{
+  width:100%;
+  height:130px;
+  border-radius:12px;
+  border:none;
+  padding:12px;
+}
+
+.btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(45deg,var(--accent),var(--accent2));
+  color:white;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+.entry{
+  background:var(--card);
+  padding:15px;
+  border-radius:12px;
+  margin:10px 0;
+  position:relative;
+}
+
+.entry::after{
+  content:"✨";
+  position:absolute;
+  top:-8px;
+  right:-8px;
+}
+
+.entry img{
+  max-width:100%;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+.lock-screen{
+  position:fixed;
+  inset:0;
+  background:linear-gradient(135deg,#020617,#0f172a);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+}
+
+.lock-box{
+  background:var(--card);
+  padding:25px;
+  border-radius:15px;
+  text-align:center;
+  animation:pop 0.4s ease;
+}
+
+@keyframes pop{
+  from{transform:scale(0.8);opacity:0;} to{transform:scale(1);opacity:1;}
+}
+
+input{
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin:10px;
+}
+
+.loading{
+  display:none;
+  font-size:1.5rem;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg);} to{transform:rotate(360deg);}
+}
+
+.popup{
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:#ef4444;
+  padding:15px;
+  border-radius:10px;
+  display:none;
+}
+
+.emoji-popup{
+  position:absolute;
+  background:#1e293b;
+  padding:10px;
+  border-radius:10px;
+  display:none;
+  max-height:200px;
+  overflow:auto;
+}
+
+.emoji-popup span{
+  padding:5px;
+  cursor:pointer;
+  font-size:18px;
+}
+
+footer{text-align:center;margin:30px;opacity:0.7;}
 </style>
 </head>
 <body>
 
 <div id="lock" class="lock-screen">
-<h2>🔐 Enter Password</h2>
-<input type="password" id="pass">
-<button class="btn" onclick="unlock()">Enter</button>
+  <div class="lock-box">
+    <h2>🔐 Secure Diary</h2>
+    <input type="password" id="pass" placeholder="Enter password">
+    <br>
+    <button class="btn" onclick="unlock()">Unlock</button>
+    <div id="loading" class="loading">🔄</div>
+  </div>
 </div>
+
+<div id="popup" class="popup">❌ Wrong Password</div>
 
 <header>📔 Diaries</header>
 
 <nav>
-<button onclick="showSection('compose')">Compose</button>
-<button onclick="showSection('view')">View</button>
-<button onclick="showSection('about')">About</button>
+<button onclick="showSection('compose')">✍️ Compose</button>
+<button onclick="showSection('past')">📜 Past Diaries</button>
+<button onclick="showSection('about')">👤 About</button>
 </nav>
 
 <div id="compose" class="section active">
 <div class="card">
-<h2>New Entry</h2>
+<h2>Write Something ✨</h2>
 <button onclick="toggleEmoji(event)">😊</button>
-<button onclick="imgInput.click()">➕ Image</button>
+<button onclick="imgInput.click()">➕</button>
 <input type="file" id="imgInput" style="display:none" onchange="addImage(event)">
 <div id="emoji" class="emoji-popup"></div>
 <textarea id="note"></textarea>
@@ -51,9 +216,9 @@ input{padding:8px;border-radius:8px;border:none;margin:5px;}
 </div>
 </div>
 
-<div id="view" class="section">
-<h2>Entries</h2>
-<input type="text" id="search" placeholder="Search..." oninput="displayNotes()">
+<div id="past" class="section">
+<h2>📜 Past Diaries</h2>
+<input id="search" placeholder="Search..." oninput="displayNotes()">
 <input type="date" id="dateFilter" onchange="displayNotes()">
 <div id="entries"></div>
 </div>
@@ -63,58 +228,66 @@ input{padding:8px;border-radius:8px;border:none;margin:5px;}
 <h2>About Me</h2>
 <p><b>Name:</b> Adhvik Mahesh</p>
 <p><b>Grade:</b> 9</p>
-<p><b>🚀 Curious Mind, Growing Journey</b><br>
-A student who enjoys learning, experimenting, and improving step by step. Always exploring ideas and building things while growing every day.</p>
+<p><b>🚀 Curious Mind</b><br>Always learning, building and improving step by step. This diary captures growth and ideas.</p>
 </div>
 </div>
+
+<footer>✨ Personal Diary App ✨</footer>
 
 <script>
-// PASSWORD
 if(!localStorage.getItem("pass")) localStorage.setItem("pass","adhvik_diary");
+
 function unlock(){
- if(document.getElementById("pass").value===localStorage.getItem("pass")){
-  document.getElementById("lock").style.display="none";
- } else alert("Wrong password");
+ let input=document.getElementById("pass").value;
+ let correct=localStorage.getItem("pass");
+
+ if(input===correct){
+  document.getElementById("loading").style.display="block";
+  setTimeout(()=>{
+    document.getElementById("lock").style.display="none";
+  },2000);
+ } else {
+  let p=document.getElementById("popup");
+  p.style.display="block";
+  setTimeout(()=>p.style.display="none",2000);
+ }
 }
 
-// BIG EMOJI LIST
-const emojiList = "😄 😂 😍 😭 😎 😡 🤯 🥶 😴 🤔 🫠 🥳 🤩 🥺 😈 👻 💀 🔥 ✨ ⭐ 🌟 💫 ⚡ ❤️ 💔 💖 💯 👍 👎 🙌 👏 🤝 🙏 🧠 📚 ✏️ 📝 🎯 🚀 🌙 ☀️ 🌧️ ⛈️ 🌈 🍔 🍕 🍟 🍜 🍩 🍫 ☕ 🎮 🖥️ 📱 🎧 🎵 🎶 ⚽ 🏀 🏆 🥇".split(" ");
+const emojis="😄 😂 😍 😭 😎 🤯 🥳 🤩 😈 👻 💀 🔥 ✨ ⭐ ❤️ 💖 💯 👍 👎 🙌 👏 🧠 📚 🎯 🚀 🌙 ☕ 🎮 📱 🎧 ⚽ 🏆 🍕 🍩".split(" ");
 
 function toggleEmoji(e){
  let box=document.getElementById("emoji");
  box.style.display=box.style.display==="block"?"none":"block";
  box.style.top=e.target.offsetTop+30+"px";
  box.style.left=e.target.offsetLeft+"px";
- box.innerHTML = emojiList.map(em=>`<span onclick="addEmoji('${em}')">${em}</span>`).join("");
+ box.innerHTML=emojis.map(em=>`<span onclick="addEmoji('${em}')">${em}</span>`).join("");
 }
 
 function addEmoji(e){document.getElementById("note").value+=e;}
 
-// IMAGE
 function addImage(e){
- let reader=new FileReader();
- reader.onload=x=>document.getElementById("note").value+=`\n[img:${x.target.result}]`;
- reader.readAsDataURL(e.target.files[0]);
+ let r=new FileReader();
+ r.onload=x=>document.getElementById("note").value+=`\n[img:${x.target.result}]`;
+ r.readAsDataURL(e.target.files[0]);
 }
 
-// SAVE
 function saveNote(){
- let text=document.getElementById("note").value;
- if(!text) return;
- let notes=JSON.parse(localStorage.getItem("notes")||"[]");
- notes.push({text,date:new Date().toLocaleDateString()});
- localStorage.setItem("notes",JSON.stringify(notes));
+ let t=document.getElementById("note").value;
+ if(!t) return;
+ let n=JSON.parse(localStorage.getItem("notes")||"[]");
+ n.push({text:t,date:new Date().toLocaleDateString()});
+ localStorage.setItem("notes",JSON.stringify(n));
  document.getElementById("note").value="";
- alert("Saved");
+ alert("Saved ✨");
 }
 
-// DISPLAY
 function displayNotes(){
  let notes=JSON.parse(localStorage.getItem("notes")||"[]");
  let s=document.getElementById("search").value.toLowerCase();
  let d=document.getElementById("dateFilter").value;
  let c=document.getElementById("entries");
  c.innerHTML="";
+
  notes.slice().reverse().forEach((n,i)=>{
   if(s && !n.text.toLowerCase().includes(s)) return;
   if(d && n.date!==new Date(d).toLocaleDateString()) return;
@@ -123,11 +296,10 @@ function displayNotes(){
  });
 }
 
-// NAV
 function showSection(id){
  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
  document.getElementById(id).classList.add('active');
- if(id==='view') displayNotes();
+ if(id==='past') displayNotes();
 }
 </script>
 

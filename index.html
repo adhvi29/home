@@ -1,394 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diary Pro</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Diaries</title>
 <style>
 :root{
-  --bg:#0b1220;
-  --panel:rgba(17,24,39,0.9);
-  --card:rgba(31,41,55,0.85);
-  --accent:#6366f1;
+  --glass: rgba(255,255,255,0.08);
+  --text: #fff;
 }
-
+*{box-sizing:border-box;font-family:Arial,sans-serif;}
 body{
   margin:0;
-  font-family:Segoe UI;
-  color:white;
-  background-size:cover;
-  background-position:center;
+  height:100vh;
   overflow:hidden;
+  color:var(--text);
+  background: linear-gradient(120deg,#0b0f1a,#1a1f3a);
+  background-size:cover;
 }
 
-/* DARK OVERLAY */
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
+/* LOCKSCREEN (FIXED like Windows, with background) */
+#lockscreen{
+  position:fixed;inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background: url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80') center/cover;
+  z-index:9999;
+}
+
+#overlay{
+  position:absolute;inset:0;
   background:rgba(0,0,0,0.55);
-  z-index:-1;
+}
+
+#lockContent{
+  position:relative;
+  text-align:center;
+  animation:pop .4s ease;
+}
+
+#clock{font-size:60px;}
+#date{opacity:0.8;margin-bottom:20px;}
+
+#box{
+  background:var(--glass);
+  padding:20px;
+  border-radius:15px;
+  width:260px;
+  backdrop-filter:blur(10px);
+}
+
+input,textarea{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin-top:10px;
+  outline:none;
+}
+
+button{cursor:pointer;}
+
+.eye{float:right;margin-top:-35px;margin-right:10px;cursor:pointer;}
+
+@keyframes pop{
+  from{transform:scale(.85);opacity:0}
+  to{transform:scale(1);opacity:1}
 }
 
 /* APP */
-.app{
+#app{display:none;height:100vh;}
+header{
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  background:rgba(0,0,0,0.4);
+}
+
+.container{
   display:grid;
-  grid-template-columns:260px 1fr;
-  height:100vh;
+  grid-template-columns:220px 1fr;
+  height:calc(100vh - 50px);
 }
 
 .sidebar{
-  background:var(--panel);
-  padding:20px;
+  background:rgba(0,0,0,0.3);
+  padding:10px;
 }
 
 .sidebar button{
-  width:100%;
-  margin:8px 0;
+  width:100%;margin:6px 0;
   padding:10px;
   border:none;
   border-radius:10px;
-  background:var(--card);
+  background:var(--glass);
   color:white;
-  cursor:pointer;
-  transition:0.2s;
-}
-.sidebar button:hover{transform:scale(1.03)}
-
-.main{
-  padding:20px;
-  overflow:auto;
 }
 
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.settings-btn{
-  background:var(--card);
-  padding:8px 12px;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-.settings{
-  position:absolute;
-  right:20px;
-  top:60px;
-  width:280px;
-  background:var(--panel);
-  padding:15px;
-  border-radius:12px;
-  display:none;
-  animation:pop 0.2s ease;
-}
-
-@keyframes pop{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+.main{padding:15px;overflow:auto;}
 
 .card{
-  background:var(--card);
+  background:var(--glass);
+  padding:10px;
+  margin:10px 0;
+  border-radius:12px;
+}
+
+.small{opacity:0.7;font-size:12px;}
+
+#compose{display:none;}
+
+#emojiBar button{
+  margin:3px;
+}
+
+/* SETTINGS */
+#settings{
+  position:fixed;
+  right:15px;top:60px;
+  background:rgba(0,0,0,0.8);
   padding:15px;
   border-radius:12px;
-  animation:fade 0.3s;
-}
-@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-textarea{
-  width:100%;
-  height:120px;
-  border:none;
-  border-radius:10px;
-  padding:10px;
-  background:rgba(0,0,0,0.3);
-  color:white;
-}
-
-.btn{
-  background:var(--accent);
-  border:none;
-  padding:8px 12px;
-  border-radius:8px;
-  color:white;
-  cursor:pointer;
-  margin-top:10px;
-}
-
-/* EMOJI + ADD BUTTONS */
-.tools{
-  display:flex;
-  gap:12px;
-  margin-bottom:8px;
-}
-.tool{
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  background:var(--card);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  transition:0.2s;
-}
-.tool:hover{transform:scale(1.1)}
-
-.emoji-popup{
-  position:absolute;
-  background:black;
-  padding:10px;
-  border-radius:10px;
   display:none;
-  max-height:200px;
-  overflow:auto;
 }
-.emoji-popup span{
-  padding:5px;
-  cursor:pointer;
-  display:inline-block;
-}
-
-.entry{
-  background:var(--card);
-  padding:10px;
-  border-radius:10px;
-  margin:10px 0;
-  animation:fade 0.3s;
-}
-
-.entry-actions{
-  display:flex;
-  gap:10px;
-  margin-top:8px;
-}
-.action{
-  cursor:pointer;
-  font-size:18px;
-  transition:0.2s;
-}
-.action:hover{transform:scale(1.2)}
-
-/* LOCKSCREEN (WINDOWS STYLE) */
-.lock{
-  position:fixed;
-  inset:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background-size:cover;
-  background-position:center;
-}
-.lock::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:rgba(0,0,0,0.6);
-}
-.lock-box{
-  position:relative;
-  text-align:center;
-  cursor:pointer;
-  animation:fade 0.5s;
-}
-.lock input{
-  display:none;
-  margin-top:10px;
-  padding:10px;
-  border-radius:8px;
-  border:none;
-}
-.eye{
-  position:absolute;
-  right:10px;
-  top:10px;
-  cursor:pointer;
-}
-
-/* MODAL */
-.modal{
-  position:fixed;
-  inset:0;
-  display:none;
-  justify-content:center;
-  align-items:center;
-  background:rgba(0,0,0,0.6);
-}
-.modal-box{
-  background:var(--panel);
-  padding:20px;
-  border-radius:12px;
-  text-align:center;
-}
-
 </style>
 </head>
 <body>
 
 <!-- LOCKSCREEN -->
-<div id="lock" class="lock" onclick="showLogin()">
-  <div class="lock-box">
-    <h1>Windows Lock</h1>
-    <p>Click to unlock</p>
-    <div style="position:relative">
-      <input type="password" id="pass">
-      <span class="eye" onclick="togglePass(event)">👁</span>
-    </div>
-    <button class="btn" onclick="unlock(event)">Enter</button>
+<div id="lockscreen" onclick="showLogin()">
+<div id="overlay"></div>
+
+<div id="lockContent">
+  <div id="clock"></div>
+  <div id="date"></div>
+
+  <div id="box" style="display:none">
+    <h3>🔒 Diaries</h3>
+    <input type="password" id="pass" placeholder="Password" />
+    <span class="eye" onclick="togglePass()">👁</span>
+    <button onclick="login()">Enter</button>
+    <div id="err" style="color:red"></div>
   </div>
 </div>
-
-<!-- MODAL -->
-<div id="modal" class="modal" onclick="closeModal()">
-  <div class="modal-box" id="modalText"></div>
 </div>
 
-<div class="app">
+<!-- APP -->
+<div id="app">
+<header>
+  <h3>📔 Diaries</h3>
+  <button onclick="toggleSettings()">⚙️</button>
+</header>
+
+<div class="container">
 
 <div class="sidebar">
-<h2>📔 Diary</h2>
-<button onclick="show('compose')">✍️ Compose</button>
-<button onclick="show('past')">📜 Past</button>
-<button onclick="show('about')">👤 About</button>
+  <button onclick="showCompose()">New Entry</button>
+  <button onclick="showEntries()">Entries</button>
 </div>
 
 <div class="main">
 
-<div class="topbar">
-<h3 id="title">Compose</h3>
-<div class="settings-btn" onclick="toggleSettings()">⚙️</div>
+<div id="compose">
+  <textarea id="text" placeholder="Write your day..."></textarea>
+
+  <div id="emojiBar">
+    😊 😍 😭 🔥 💀 📚 🎮
+  </div>
+
+  <input id="tag" placeholder="Tag (school, life, etc)" />
+
+  <button onclick="save()">Save</button>
 </div>
 
-<div id="settings" class="settings">
-<h4>Settings</h4>
-<label><input type="checkbox" id="autoBg"> Auto Background</label><br>
-<input type="file" onchange="setBg(event)"><br>
-<input type="password" id="newPass" placeholder="Change password">
-<button class="btn" onclick="changePass()">Save</button>
-</div>
-
-<div id="compose" class="card">
-
-<div class="tools">
-<div class="tool" onclick="toggleEmoji()">😊</div>
-<div class="tool" onclick="addImage()">➕</div>
-</div>
-
-<div id="emoji" class="emoji-popup"></div>
-<textarea id="note"></textarea>
-<button class="btn" onclick="save()">Save</button>
-</div>
-
-<div id="past" class="card" style="display:none">
-<input id="search" placeholder="Search" oninput="display()">
-<input type="date" id="dateFilter" onchange="display()">
 <div id="entries"></div>
-</div>
 
-<div id="about" class="card" style="display:none">
-<p>Adhvik Mahesh</p>
 </div>
-
 </div>
 </div>
 
 <script>
-if(!localStorage.pass) localStorage.pass="adhvik_diary";
+let password="adhvik_diary";
+
+function updateTime(){
+  let d=new Date();
+  document.getElementById("clock").innerText=d.toLocaleTimeString();
+  document.getElementById("date").innerText=d.toDateString();
+}
+setInterval(updateTime,1000);updateTime();
 
 function showLogin(){
- document.querySelector('#pass').style.display='block';
+  document.getElementById("box").style.display="block";
 }
 
-function togglePass(e){
- e.stopPropagation();
- let p=document.getElementById('pass');
- p.type=p.type==='password'?'text':'password';
+function togglePass(){
+  let p=document.getElementById("pass");
+  p.type=p.type=="password"?"text":"password";
 }
 
-function unlock(e){
- e.stopPropagation();
- if(pass.value===localStorage.pass){lock.style.display='none'}
- else showModal("❌ Wrong Password")
+function login(){
+  let p=document.getElementById("pass").value;
+  if(p===password){
+    document.getElementById("lockscreen").style.display="none";
+    document.getElementById("app").style.display="block";
+    showEntries();
+  }else{
+    document.getElementById("err").innerText="Wrong password";
+  }
 }
 
-function showModal(t){modalText.innerHTML=t;modal.style.display='flex'}
-function closeModal(){modal.style.display='none'}
-
-function toggleSettings(){settings.style.display=settings.style.display==='block'?'none':'block'}
-
-function changePass(){localStorage.pass=newPass.value;showModal("Password Updated")}
-
-// BACKGROUND
-function setBg(e){
- let r=new FileReader();
- r.onload=x=>document.body.style.backgroundImage=`url(${x.target.result})`;
- r.readAsDataURL(e.target.files[0]);
+function showCompose(){
+  document.getElementById("compose").style.display="block";
+  document.getElementById("entries").style.display="none";
 }
 
-// EMOJI
-const emojis="😄😂😍😭😎🤯🥳🤩🔥✨❤️💯👍🙌📚🚀".split("");
-function toggleEmoji(){
- let el=emoji;
- el.style.display=el.style.display==='block'?'none':'block';
- el.innerHTML=emojis.map(e=>`<span onclick="addEmoji('${e}')">${e}</span>`).join('');
-}
-function addEmoji(e){note.value+=e;emoji.style.display='none'}
+function showEntries(){
+  document.getElementById("compose").style.display="none";
+  document.getElementById("entries").style.display="block";
 
-// SAVE
+  let d=JSON.parse(localStorage.getItem("d")||"[]");
+  let box=document.getElementById("entries");
+  box.innerHTML="";
+
+  d.reverse().forEach(e=>{
+    box.innerHTML+=`
+      <div class='card'>
+        <div class='small'>${e.date} | ${e.tag||"no tag"}</div>
+        <div>${e.text}</div>
+      </div>`;
+  });
+}
+
 function save(){
- let n=JSON.parse(localStorage.notes||"[]");
- n.push({text:note.value,date:new Date().toLocaleDateString()});
- localStorage.notes=JSON.stringify(n);
- note.value="";
+  let text=document.getElementById("text").value;
+  let tag=document.getElementById("tag").value;
+
+  let d=JSON.parse(localStorage.getItem("d")||"[]");
+  d.push({text,tag,date:new Date().toLocaleString()});
+  localStorage.setItem("d",JSON.stringify(d));
+
+  document.getElementById("text").value="";
+  document.getElementById("tag").value="";
+
+  showEntries();
 }
-
-// DISPLAY
-function display(){
- let n=JSON.parse(localStorage.notes||"[]");
- let s=search.value?.toLowerCase()||"";
- let d=dateFilter.value;
- entries.innerHTML="";
-
- n.slice().reverse().forEach((e,i)=>{
-  if(s && !e.text.toLowerCase().includes(s)) return;
-  if(d && e.date!==new Date(d).toLocaleDateString()) return;
-
-  entries.innerHTML+=`
-  <div class='entry'>
-    <small>${e.date}</small>
-    <p contenteditable onblur="edit(${i},this.innerText)">${e.text}</p>
-    <div class='entry-actions'>
-      <span class='action' onclick="edit(${i},prompt('Edit',this.parentNode.parentNode.innerText))">✏️</span>
-      <span class='action' onclick="confirmDel(${i})">🗑</span>
-    </div>
-  </div>`;
- });
-}
-
-function confirmDel(i){
- modalText.innerHTML=`Delete this entry? <br><br><button onclick="del(${i})" class='btn'>Yes</button>`;
- modal.style.display='flex';
-}
-
-function del(i){
- let n=JSON.parse(localStorage.notes);
- n.splice(i,1);
- localStorage.notes=JSON.stringify(n);
- closeModal();
- display();
-}
-
-function edit(i,text){let n=JSON.parse(localStorage.notes);n[i].text=text;localStorage.notes=JSON.stringify(n)}
-
-function show(id){
- compose.style.display='none';
- past.style.display='none';
- about.style.display='none';
- document.getElementById(id).style.display='block';
- title.innerText=id;
- if(id==='past') display();
-}
-
 </script>
+
 </body>
 </html>

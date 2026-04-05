@@ -1,359 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Diary OS</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+overflow:hidden;
+background:black;
+color:white;
+}
+
+/* ===== LOCKSCREEN ===== */
+#lockscreen{
+position:fixed;
+inset:0;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+background:black;
+z-index:9999;
+}
+
+#time{
+font-size:50px;
+margin-bottom:20px;
+}
+
+input{
+padding:10px;
+font-size:18px;
+}
+
+/* ===== DESKTOP ===== */
+#desktop{
+display:none;
+height:100vh;
+width:100vw;
+position:relative;
+}
+
+/* wallpapers */
+#bg1,#bg2{
+position:fixed;
+inset:0;
+background-size:cover;
+background-position:center;
+transition:opacity 1s;
+}
+
+#bg2{opacity:0}
+
+/* taskbar */
+#bar{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+height:50px;
+background:#111;
+display:flex;
+gap:10px;
+align-items:center;
+padding:0 10px;
+z-index:1000;
+}
+
+/* windows */
+.win{
+position:absolute;
+width:300px;
+background:#222;
+border:1px solid #444;
+}
+
+.bar{
+background:#333;
+padding:5px;
+display:flex;
+justify-content:space-between;
+cursor:move;
+}
+
+.body{
+padding:10px;
+}
+
+/* emoji */
+#emoji{
+position:fixed;
+bottom:60px;
+right:10px;
+background:#000a;
+padding:10px;
+display:grid;
+grid-template-columns:repeat(5,1fr);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOCKSCREEN -->
+<div id="lockscreen">
+<div id="time"></div>
+<input id="pass" type="password" placeholder="Enter password">
+<button onclick="unlock()">Unlock</button>
+</div>
+
+<!-- DESKTOP -->
+<div id="desktop">
+
+<div id="bg1"></div>
+<div id="bg2"></div>
+
+<div id="bar">
+<button onclick="newDiary()">📔 New</button>
+<button onclick="openPrev()">📁 Diaries</button>
+<button onclick="openSearch()">🔍 Search</button>
+<button onclick="openSettings()">⚙️ Settings</button>
+</div>
+
+</div>
+
 <script>
 
-document.addEventListener("DOMContentLoaded", () => {
+/* ================= LOCKSCREEN ================= */
 
-/* =========================
-   SAFE INIT GUARD
-========================= */
+let PASSWORD="1234";
 
-function safe(fn){
-try { fn(); } catch(e){ console.log("DiaryOS error:", e); }
+function updateTime(){
+document.getElementById("time").innerText=new Date().toLocaleTimeString();
+}
+setInterval(updateTime,1000);
+updateTime();
+
+function unlock(){
+let p=document.getElementById("pass").value;
+if(p===PASSWORD){
+document.getElementById("lockscreen").style.display="none";
+document.getElementById("desktop").style.display="block";
+startWallpaper();
+}
 }
 
-/* =========================
-   ELEMENT CHECK
-========================= */
+/* ================= WALLPAPER ================= */
 
-const bg1 = window.bg1 || document.getElementById("bg1");
-const bg2 = window.bg2 || document.getElementById("bg2");
+let wallpapers=[
+"https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+"https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
+];
 
-/* =========================
-   WAIT FOR DB READY
-========================= */
+let wp=true;
 
-let dbReady = false;
-let dbQueue = [];
+function startWallpaper(){
+setInterval(()=>{
+if(!wp)return;
 
-function waitDB(fn){
-if(dbReady) fn();
-else dbQueue.push(fn);
+let img=wallpapers[Math.floor(Math.random()*wallpapers.length)];
+bg2.style.backgroundImage=`url(${img})`;
+bg2.style.opacity=1;
+bg1.style.opacity=0;
+
+setTimeout(()=>{
+bg1.style.backgroundImage=bg2.style.backgroundImage;
+bg1.style.opacity=1;
+bg2.style.opacity=0;
+},1000);
+
+},10000);
 }
 
-/* =========================
-   DB INIT (SAFE)
-========================= */
+/* ================= WINDOW SYSTEM ================= */
 
-let db;
-let req = indexedDB.open("DiaryOS", 4);
+let z=10;
 
-req.onupgradeneeded = e => {
-db = e.target.result;
-if (!db.objectStoreNames.contains("diaries")) {
-let store = db.createObjectStore("diaries", { keyPath: "id", autoIncrement: true });
-store.createIndex("date", "date");
-}
-};
+function win(title,html){
+let w=document.createElement("div");
+w.className="win";
+w.style.zIndex=z++;
 
-req.onsuccess = e => {
-db = e.target.result;
-dbReady = true;
-
-dbQueue.forEach(fn => fn());
-dbQueue = [];
-};
-
-/* =========================
-   WINDOW SYSTEM (SAFE)
-========================= */
-
-let z = 10;
-
-window.win = function(title, content){
-
-safe(() => {
-let w = document.createElement("div");
-w.className = "win";
-w.style.cssText = "position:absolute;top:120px;left:120px;z-index:"+z++;
-
-w.innerHTML = `
+w.innerHTML=`
 <div class="bar">
 <span>${title}</span>
-<span onclick="this.closest('.win').remove()">✕</span>
+<span onclick="this.parentElement.parentElement.remove()">✖</span>
 </div>
-<div class="body">${content}</div>
+<div class="body">${html}</div>
 `;
 
 document.body.appendChild(w);
+
+/* drag */
+let drag=false,ox,oy;
+
+w.querySelector(".bar").onmousedown=e=>{
+drag=true;
+ox=e.clientX-w.offsetLeft;
+oy=e.clientY-w.offsetTop;
+};
+
+document.onmousemove=e=>{
+if(drag){
+w.style.left=(e.clientX-ox)+"px";
+w.style.top=(e.clientY-oy)+"px";
+}
+};
+
+document.onmouseup=()=>drag=false;
+
 return w;
-});
+}
 
+/* ================= DATABASE ================= */
+
+let db;
+let req=indexedDB.open("DiaryOS",1);
+
+req.onupgradeneeded=e=>{
+db=e.target.result;
+db.createObjectStore("diaries",{keyPath:"id",autoIncrement:true});
 };
 
-/* =========================
-   ENCRYPTION SAFE (NO CRASH)
-========================= */
+req.onsuccess=e=>db=e.target.result;
 
-const enc = new TextEncoder();
-const dec = new TextDecoder();
+/* ================= SAVE DIARY ================= */
 
-async function getKey(){
-let base = await crypto.subtle.importKey(
-"raw",
-enc.encode("1234"),
-"PBKDF2",
-false,
-["deriveKey"]
-);
-
-return crypto.subtle.deriveKey(
-{
-name:"PBKDF2",
-salt:enc.encode("diary-salt"),
-iterations:100000,
-hash:"SHA-256"
-},
-base,
-{ name:"AES-GCM", length:256 },
-false,
-["encrypt","decrypt"]
-);
-}
-
-async function encrypt(text){
-let key = await getKey();
-let iv = crypto.getRandomValues(new Uint8Array(12));
-
-let data = await crypto.subtle.encrypt(
-{ name:"AES-GCM", iv },
-key,
-enc.encode(text)
-);
-
-return { iv:[...iv], data:[...new Uint8Array(data)] };
-}
-
-async function decrypt(obj){
-let key = await getKey();
-
-let iv = new Uint8Array(obj.iv);
-let data = new Uint8Array(obj.data);
-
-let res = await crypto.subtle.decrypt(
-{ name:"AES-GCM", iv },
-key,
-data
-);
-
-return dec.decode(res);
-}
-
-/* =========================
-   SAFE SAVE
-========================= */
-
-window.saveDiary = function(text, images){
-
-waitDB(async () => {
-let encrypted = await encrypt(text);
-
-let tx = db.transaction("diaries","readwrite");
+function saveDiary(text,imgs){
+let tx=db.transaction("diaries","readwrite");
 tx.objectStore("diaries").add({
-text:encrypted,
-images:images||[],
-date:Date.now()
+text,
+imgs,
+date:new Date().toISOString()
 });
+}
 
-});
-};
+/* ================= NEW DIARY ================= */
 
-/* =========================
-   NEW DIARY (SAFE)
-========================= */
+let currentImgs=[];
 
-window.newDiary = function(){
+function newDiary(){
 
-waitDB(() => {
+currentImgs=[];
 
-win("New Diary", `
-<textarea id="t" style="width:100%;height:200px"></textarea>
-
-<button onclick="saveDiary(t.value,currentImgs)">💾 Save</button>
-<button onclick="emoji(t)">😊 Emoji</button>
+win("New Diary",`
+<textarea id="t" style="width:100%;height:150px"></textarea><br>
 <button onclick="addImg()">➕ Image</button>
-
-<div id="p"></div>
+<button onclick="emoji(t)">😊 Emoji</button>
+<button onclick="saveDiary(t.value,currentImgs)">💾 Save</button>
+<div id="preview"></div>
 `);
 
-window.currentImgs=[];
+}
 
-window.addImg=function(){
+/* image upload */
+function addImg(){
 let i=document.createElement("input");
 i.type="file";
-
 i.onchange=e=>{
 for(let f of e.target.files){
 let url=URL.createObjectURL(f);
 currentImgs.push(url);
-document.getElementById("p").innerHTML += `<img src="${url}" width="80">`;
+document.getElementById("preview").innerHTML+=`<img src="${url}" width="80">`;
 }
 };
-
 i.click();
-};
+}
 
-});
+/* ================= PREVIOUS DIARIES ================= */
 
-};
+function openPrev(){
 
-/* =========================
-   PREVIOUS DIARIES (SAFE)
-========================= */
+let tx=db.transaction("diaries","readonly");
+let st=tx.objectStore("diaries");
 
-window.openPrevious = function(){
+let html="<h3>Previous Diaries</h3>";
 
-waitDB(() => {
-
-let tx = db.transaction("diaries","readonly");
-let store = tx.objectStore("diaries");
-
-let html = "<h3>Previous Diaries</h3>";
-
-store.openCursor().onsuccess = async e => {
-let c = e.target.result;
-
+st.openCursor().onsuccess=e=>{
+let c=e.target.result;
 if(c){
-let text = await decrypt(c.value.text);
-
-html += `
-<div onclick="viewDiary(${c.key})"
-style="padding:6px;border:1px solid #444;margin:5px;cursor:pointer">
-${text.slice(0,40)}...
-</div>
-`;
-
+html+=`<div onclick="view(${c.key})" style="padding:5px;border:1px solid #555;margin:5px;cursor:pointer">${c.value.text.slice(0,40)}</div>`;
 c.continue();
-} else {
-win("Previous Diaries", html);
+}else{
+win("Diaries",html);
 }
 };
 
-});
+}
 
+function view(id){
+let tx=db.transaction("diaries","readonly");
+let st=tx.objectStore("diaries");
+
+st.get(id).onsuccess=e=>{
+let d=e.target.result;
+win("View",`<p>${d.text}</p>${(d.imgs||[]).map(i=>`<img src="${i}" width="120">`).join("")}`);
 };
+}
 
-/* VIEW SAFE */
-window.viewDiary = function(id){
+/* ================= SEARCH + CALENDAR ================= */
 
-waitDB(() => {
+function openSearch(){
 
-let tx = db.transaction("diaries","readonly");
-let store = tx.objectStore("diaries");
-
-let req = store.get(id);
-
-req.onsuccess = async () => {
-let data = req.result;
-let text = await decrypt(data.text);
-
-win("Diary View", `
-<p>${text}</p>
-${(data.images||[]).map(i=>`<img src="${i}" width="120">`).join("")}
-`);
-};
-
-});
-
-};
-
-/* =========================
-   SEARCH + CALENDAR SAFE
-========================= */
-
-window.openSearchCalendar = function(){
-
-waitDB(() => {
-
-win("Search + Calendar", `
-<input id="q" style="width:100%" placeholder="search or date">
-<button onclick="run(q.value)">Search</button>
+win("Search + Calendar",`
+<input id="q">
+<button onclick="search(q.value)">Search</button>
 <div id="r"></div>
 `);
 
-window.run = function(q){
-
-let tx = db.transaction("diaries","readonly");
-let store = tx.objectStore("diaries");
+window.search=function(q){
+let tx=db.transaction("diaries","readonly");
+let st=tx.objectStore("diaries");
 
 let out=document.getElementById("r");
 out.innerHTML="";
 
-store.openCursor().onsuccess = async e => {
+st.openCursor().onsuccess=e=>{
 let c=e.target.result;
-
 if(c){
-let text=await decrypt(c.value.text);
-let date=new Date(c.value.date).toDateString();
-
-if(text.toLowerCase().includes(q.toLowerCase()) || date.includes(q)){
-out.innerHTML+=`
-<div onclick="viewDiary(${c.key})"
-style="margin:5px;padding:5px;border:1px solid #555">
-📅 ${date}<br>${text.slice(0,50)}
-</div>`;
+if(c.value.text.toLowerCase().includes(q.toLowerCase())){
+out.innerHTML+=`<div style="margin:5px;border:1px solid #555">${c.value.text.slice(0,50)}</div>`;
 }
-
 c.continue();
 }
 };
-
 };
 
-});
-
-};
-
-/* =========================
-   EMOJI SAFE
-========================= */
-
-const emojis=["😀","😂","😍","😭","🔥","❤️","👍"];
-
-window.emoji=function(t){
-
-let p=document.getElementById("e");
-
-if(!p){
-p=document.createElement("div");
-p.id="e";
-document.body.appendChild(p);
 }
 
-p.style.cssText="position:fixed;bottom:50px;right:10px;background:#0008;padding:10px";
+/* ================= EMOJI ================= */
 
-p.innerHTML="";
+function emoji(t){
+let emojis=["😀","😂","😍","😭","🔥","❤️","👍"];
+
+let box=document.createElement("div");
+box.id="emoji";
+
+box.innerHTML="";
 
 emojis.forEach(e=>{
 let s=document.createElement("span");
 s.innerText=e;
-s.style.cursor="pointer";
 s.onclick=()=>t.value+=e;
-p.appendChild(s);
+box.appendChild(s);
 });
 
-};
+document.body.appendChild(box);
+}
 
-/* =========================
-   SETTINGS SAFE (NO CRASH)
-========================= */
+/* ================= SETTINGS ================= */
 
-window.openSettings=function(){
-
-win("Settings", `
-<button onclick="toggleWallpaper()">Toggle Wallpaper</button>
-<button onclick="clearData()">Reset Data</button>
+function openSettings(){
+win("Settings",`
+<button onclick="wp=!wp">Toggle Wallpaper</button>
+<button onclick="indexedDB.deleteDatabase('DiaryOS')">Reset Data</button>
 `);
-
-window.toggleWallpaper=function(){
-window.wallpaperOn = !window.wallpaperOn;
-};
-
-window.clearData=function(){
-indexedDB.deleteDatabase("DiaryOS");
-win("Settings","<p>Reset Done</p>");
-};
-
-};
-
-});
+}
 
 </script>
+
+</body>
+</html>

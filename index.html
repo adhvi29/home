@@ -2,159 +2,120 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Diary OS v4</title>
+<title>Diary OS v5</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI}
-body{overflow:hidden;background:black;color:white}
+*{margin:0;padding:0;font-family:Segoe UI;color:white;box-sizing:border-box}
+body{overflow:hidden;background:black}
 
-/* BACKGROUND */
+/* BACKGROUNDS */
 .bg{
 position:fixed;inset:0;
 background-size:cover;
 background-position:center;
-transition:opacity 0.8s ease;
-z-index:-5;
+transition:1s;
+z-index:-3;
 }
-#bg1{opacity:1}
-#bg2{opacity:0}
+#bg{filter:none}
 
-.overlay{
-position:fixed;inset:0;
-background:rgba(0,0,0,0.35);
-backdrop-filter:blur(18px);
-z-index:-1;
-}
-
-/* LOCK */
-#lockscreen{
+/* LOCK SCREEN */
+#lock{
 position:fixed;inset:0;
 display:flex;
-flex-direction:column;
 justify-content:center;
 align-items:center;
+flex-direction:column;
 gap:20px;
 }
 
-#clock{font-size:65px;font-weight:200}
+#time{font-size:70px;font-weight:200}
+
+/* LOGIN */
+#login{
+position:fixed;inset:0;
+display:none;
+justify-content:center;
+align-items:center;
+backdrop-filter:blur(20px);
+background:rgba(0,0,0,0.3);
+flex-direction:column;
+gap:10px;
+}
+
+input{
+padding:10px;
+border-radius:8px;
+border:none;
+background:rgba(255,255,255,0.1);
+outline:none;
+}
+
+/* EYE */
+.eye{
+cursor:pointer;
+}
 
 /* DESKTOP */
-#desktop{display:none;height:100vh}
+#desktop{
+display:none;
+height:100vh;
+}
 
-/* TASKBAR */
-#taskbar{
+/* AI BOX */
+#aiBox{
 position:fixed;
-bottom:0;
-width:100%;
-display:flex;
-justify-content:space-between;
-padding:8px;
+bottom:60px;
+right:20px;
+width:280px;
 background:rgba(0,0,0,0.6);
-backdrop-filter:blur(20px);
-}
-
-.icon{
-padding:7px;
-cursor:pointer;
-border-radius:8px;
-position:relative;
-transition:0.2s;
-}
-
-.icon:hover{background:rgba(255,255,255,0.1)}
-
-/* TOOLTIP FIXED (NO ALERTS) */
-.tooltip{
-position:absolute;
-bottom:40px;
-left:50%;
-transform:translateX(-50%);
-background:black;
-padding:5px 8px;
-border-radius:6px;
-font-size:12px;
-white-space:nowrap;
-opacity:0;
-transition:0.2s;
-pointer-events:none;
-}
-
-.icon:hover .tooltip{
-opacity:1;
-}
-
-/* WINDOWS */
-.window{
-position:absolute;
-width:380px;
-height:360px;
-background:rgba(20,20,20,0.92);
-backdrop-filter:blur(20px);
-border-radius:12px;
-display:flex;
-flex-direction:column;
-overflow:hidden;
-}
-
-.titlebar{
-display:flex;
-justify-content:space-between;
-padding:6px;
-background:rgba(255,255,255,0.08);
-cursor:grab;
-}
-
-/* CONTENT */
-.content{
-flex:1;
-display:flex;
-flex-direction:column;
-padding:8px;
-gap:6px;
-}
-
-/* DIARY LIST */
-.diaryItem{
-padding:6px;
-margin:4px 0;
-background:rgba(255,255,255,0.08);
-border-radius:6px;
-cursor:pointer;
-}
-
-/* SETTINGS PANEL */
-#settings{
-position:fixed;
-right:-320px;
-top:0;
-width:320px;
-height:100%;
-background:rgba(0,0,0,0.85);
-backdrop-filter:blur(20px);
-transition:0.3s;
+backdrop-filter:blur(15px);
 padding:10px;
-z-index:999;
-}
-#settings.open{right:0}
-
-button{
-background:rgba(255,255,255,0.1);
-border:none;
-padding:6px;
-border-radius:8px;
-color:white;
-cursor:pointer;
+border-radius:10px;
+display:none;
+flex-direction:column;
 }
 
 textarea{
-background:rgba(255,255,255,0.08);
+width:100%;
+height:60px;
+background:rgba(255,255,255,0.1);
 border:none;
-color:white;
-padding:8px;
 border-radius:8px;
-outline:none;
+padding:6px;
 resize:none;
-flex:1;
+outline:none;
+}
+
+/* EMOJI */
+#emojiBtn{
+position:fixed;
+bottom:15px;
+right:15px;
+font-size:22px;
+cursor:pointer;
+}
+
+#emojiPanel{
+position:fixed;
+bottom:60px;
+right:15px;
+background:rgba(0,0,0,0.7);
+padding:10px;
+border-radius:10px;
+display:none;
+grid-template-columns:repeat(5,1fr);
+gap:5px;
+}
+
+.emoji{cursor:pointer}
+
+/* TASKBAR CLOCK */
+#clockTop{
+position:fixed;
+top:20px;
+left:20px;
+font-size:50px;
+font-weight:200;
 }
 
 </style>
@@ -163,203 +124,127 @@ flex:1;
 <body>
 
 <!-- BACKGROUND -->
-<div id="bg1" class="bg"></div>
-<div id="bg2" class="bg"></div>
-<div class="overlay"></div>
+<div id="bg" class="bg"></div>
 
-<!-- LOCKSCREEN -->
-<div id="lockscreen">
-<div id="clock"></div>
-<button onclick="unlock()">Enter OS</button>
+<!-- LOCK SCREEN -->
+<div id="lock">
+<div id="time"></div>
+<button onclick="showLogin()">Click to unlock</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login">
+<input id="pass" type="password" placeholder="Password">
+<span class="eye" onclick="togglePass()">👁️</span>
+<button onclick="unlock()">Enter</button>
 </div>
 
 <!-- DESKTOP -->
 <div id="desktop">
 
-<div id="taskbar">
+<div id="clockTop"></div>
 
-<div>
-<div class="icon" onclick="openDiary()" onmouseover="tip(this,'Diary')" onmouseout="untip(this)">
-📔
-<span class="tooltip"></span>
+<!-- AI -->
+<div id="aiBox">
+<textarea id="aiInput" placeholder="Ask AI..."></textarea>
+<div id="aiOut"></div>
 </div>
 
-<div class="icon" onclick="openAI()" onmouseover="tip(this,'AI Assistant')" onmouseout="untip(this)">
-🧠
-<span class="tooltip"></span>
-</div>
+<!-- EMOJI -->
+<div id="emojiBtn" onclick="toggleEmoji()">😀</div>
 
-<div class="icon" onclick="toggleSettings()" onmouseover="tip(this,'Settings')" onmouseout="untip(this)">
-⚙️
-<span class="tooltip"></span>
-</div>
+<div id="emojiPanel"></div>
 
-</div>
-
-</div>
-
-</div>
-
-<!-- SETTINGS -->
-<div id="settings">
-<h3>Settings</h3>
-<button onclick="changeBG()">Change BG</button>
 </div>
 
 <script>
 
-/* ===== BACKGROUND ===== */
-const imgs=[
-"https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
-];
-
-function setBG(url){
-bg2.style.backgroundImage=`url(${url})`;
-bg2.style.opacity=1;
-bg1.style.opacity=0;
-
-setTimeout(()=>{
-bg1.style.backgroundImage=`url(${url})`;
-bg1.style.opacity=1;
-bg2.style.opacity=0;
-},800);
+/* ===== 100+ BACKGROUNDS ===== */
+const bgList=[];
+for(let i=0;i<120;i++){
+bgList.push(`https://source.unsplash.com/1600x900/?wallpaper,${i}`);
 }
 
-setBG(imgs[Math.floor(Math.random()*imgs.length)]);
+function setBG(){
+document.getElementById("bg").style.backgroundImage=
+`url('${bgList[Math.floor(Math.random()*bgList.length)]}')`;
+}
+setBG();
 
 /* CLOCK */
 setInterval(()=>{
-clock.innerText=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+let t=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+time.innerText=t;
+clockTop.innerText=t;
 },1000);
 
-/* UNLOCK */
+/* FLOW CONTROL */
+function showLogin(){
+lock.style.display="none";
+login.style.display="flex";
+document.getElementById("bg").style.filter="blur(20px)";
+}
+
 function unlock(){
-lockscreen.style.display="none";
+login.style.display="none";
 desktop.style.display="block";
 }
 
-/* TOOLTIP SYSTEM (NO ALERTS) */
-function tip(el,text){
-el.querySelector(".tooltip").innerText=text;
+/* PASSWORD EYE */
+function togglePass(){
+let p=document.getElementById("pass");
+p.type=p.type==="password"?"text":"password";
 }
 
-function untip(el){
-el.querySelector(".tooltip").innerText="";
+/* ===== AI ENGINE FIXED ===== */
+document.getElementById("aiInput").addEventListener("keydown",function(e){
+if(e.key==="Enter" && !e.shiftKey){
+e.preventDefault();
+sendAI();
 }
-
-/* SETTINGS */
-function toggleSettings(){
-settings.classList.toggle("open");
-}
-
-function changeBG(){
-setBG(imgs[Math.floor(Math.random()*imgs.length)]);
-}
-
-/* ===== DIARY SYSTEM ===== */
-let diaries=JSON.parse(localStorage.getItem("diaries")||"[]");
-
-function saveDiary(text){
-diaries.push({
-text,
-time:new Date().toLocaleString()
 });
-localStorage.setItem("diaries",JSON.stringify(diaries));
-}
 
-/* OPEN DIARY WINDOW */
-function openDiary(){
-createWindow("Diary",`
-<textarea id="diaryBox" placeholder="Write..."></textarea>
-<button onclick="addDiary()">Save</button>
-<hr>
-<div id="list"></div>
-`);
-
-renderList();
-}
-
-function addDiary(){
-let t=document.getElementById("diaryBox").value;
-if(!t) return;
-
-saveDiary(t);
-document.getElementById("diaryBox").value="";
-renderList();
-}
-
-function renderList(){
-let list=document.getElementById("list");
-list.innerHTML="";
-
-diaries.slice().reverse().forEach((d,i)=>{
-let div=document.createElement("div");
-div.className="diaryItem";
-div.innerHTML=`${d.time}<br>${d.text.substring(0,30)}...`;
-div.onclick=()=>alert(d.text);
-list.appendChild(div);
-});
-}
-
-/* ===== AI ENGINE (REAL RESPONDER) ===== */
 function openAI(){
-createWindow("AI Assistant",`
-<textarea id="aiInput" placeholder="Ask me anything..."></textarea>
-<button onclick="sendAI()">Send</button>
-<div id="aiOut"></div>
-`);
+document.getElementById("aiBox").style.display="flex";
 }
 
 function sendAI(){
-let input=document.getElementById("aiInput").value.toLowerCase();
+let input=document.getElementById("aiInput").value;
 let out=document.getElementById("aiOut");
 
 let reply="";
 
-if(input.includes("hello")) reply="Hey 👋 I'm your Diary AI";
-else if(input.includes("sad")) reply="I'm here for you. Want to write it down?";
-else if(input.includes("diary")) reply="You can save thoughts in Diary tab 📔";
-else if(input.includes("time")) reply="Current time is "+new Date().toLocaleTimeString();
-else reply="I understand: "+input;
+if(input.includes("hello")) reply="Hey 👋";
+else if(input.includes("how are you")) reply="I'm your diary AI 😄";
+else if(input.includes("sad")) reply="Write it in your diary 💙";
+else reply="You said: "+input;
 
 out.innerHTML+="<div>"+reply+"</div>";
 }
 
-/* ===== WINDOW ENGINE ===== */
-function createWindow(title,content){
-let w=document.createElement("div");
-w.className="window";
-w.style.top="100px";
-w.style.left="100px";
+/* AUTO OPEN AI ON DESKTOP CLICK (TEST PURPOSE) */
+document.body.addEventListener("dblclick",openAI);
 
-w.innerHTML=`
-<div class="titlebar">
-<span>${title}</span>
-<span onclick="this.closest('.window').remove()">✖</span>
-</div>
-<div class="content">${content}</div>
-`;
+/* ===== EMOJI SYSTEM FIXED ===== */
+const emojis=["😀","😂","😍","😭","🔥","💀","👍","🙏","🎉","😎","🤖","💡","❤️","😡","🥶"];
 
-document.body.appendChild(w);
+let panel=document.getElementById("emojiPanel");
 
-/* drag */
-let drag=false,ox,oy;
+emojis.forEach(e=>{
+let s=document.createElement("span");
+s.innerText=e;
+s.className="emoji";
+s.onclick=()=>insertEmoji(e);
+panel.appendChild(s);
+});
 
-w.querySelector(".titlebar").onmousedown=(e)=>{
-drag=true;
-ox=e.clientX-w.offsetLeft;
-oy=e.clientY-w.offsetTop;
-};
+function toggleEmoji(){
+panel.style.display=panel.style.display==="grid"?"none":"grid";
+}
 
-document.onmousemove=(e)=>{
-if(!drag) return;
-w.style.left=(e.clientX-ox)+"px";
-w.style.top=(e.clientY-oy)+"px";
-};
-
-document.onmouseup=()=>drag=false;
+function insertEmoji(e){
+let ai=document.getElementById("aiInput");
+ai.value+=e;
 }
 
 </script>

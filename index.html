@@ -5,148 +5,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diaries PRO MAX</title>
 
-<link rel="manifest" id="manifest">
-
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,system-ui}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI}
 html,body{height:100%;overflow:hidden;background:#000;color:#fff}
 
-/* ===== BACKGROUND ===== */
+/* BACKGROUND */
 #bg,#bg2{
 position:fixed;inset:0;
 background-size:cover;
 background-position:center;
-transition:opacity 1.2s ease;
+transition:opacity 1s ease;
 z-index:-3;
 }
 #bg2{opacity:0}
 
 #overlay{
 position:fixed;inset:0;
-background:radial-gradient(circle at top,rgba(255,255,255,0.08),rgba(0,0,0,0.85));
+background:rgba(0,0,0,0.6);
 z-index:-1;
 }
 
-/* ===== LOGIN ===== */
-#winLogin{
+/* LOGIN */
+#login{
 position:fixed;inset:0;
 display:flex;
 justify-content:center;
 align-items:center;
-background:rgba(0,0,0,0.75);
-backdrop-filter:blur(25px);
-z-index:9999;
-transition:1s;
-}
-
-#loginBox{
-padding:30px;
-border-radius:18px;
-background:rgba(255,255,255,0.06);
+background:rgba(0,0,0,0.8);
 backdrop-filter:blur(20px);
+}
+
+#box{
+padding:25px;
+border-radius:15px;
+background:rgba(255,255,255,0.06);
 text-align:center;
-animation:float 4s infinite ease-in-out;
 }
 
-@keyframes float{
-0%{transform:translateY(0)}
-50%{transform:translateY(-10px)}
-100%{transform:translateY(0)}
-}
-
-/* ===== APP ===== */
+/* APP */
 #app{display:none;height:100%;flex-direction:column}
 
 #topbar{
 display:flex;
 justify-content:space-between;
-align-items:center;
-padding:12px;
+padding:10px;
 background:rgba(0,0,0,0.4);
-backdrop-filter:blur(20px);
-border-bottom:1px solid rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
 }
 
-.tab{
-cursor:pointer;
-margin:0 6px;
-opacity:0.7;
-position:relative;
-}
+.tab{margin:0 6px;cursor:pointer;opacity:0.7}
+.tab:hover{opacity:1}
 
-.tab:hover{
-opacity:1;
-transform:scale(1.15);
-}
+#content{flex:1;overflow:auto;padding:15px}
 
-/* TOOLTIP */
-.tab:hover::after{
-content:attr(data-tip);
-position:absolute;
-top:40px;
-left:50%;
-transform:translateX(-50%);
-background:rgba(0,0,0,0.8);
-padding:5px 8px;
-border-radius:8px;
-font-size:12px;
-white-space:nowrap;
-}
-
-/* CONTENT */
-#content{flex:1;overflow:auto;padding:18px}
-
+/* ENTRY */
 .entry{
 background:rgba(255,255,255,0.06);
-padding:14px;
-margin:10px 0;
-border-radius:14px;
-backdrop-filter:blur(14px);
+padding:12px;
+margin:8px 0;
+border-radius:12px;
 }
 
-textarea,input{
+/* WRITE */
+.writeBox{display:flex;flex-direction:column;gap:10px}
+textarea{
 width:100%;
-padding:10px;
-margin:5px 0;
-border-radius:10px;
+height:200px;
 border:none;
+border-radius:12px;
+padding:10px;
 background:rgba(255,255,255,0.08);
 color:white;
 }
 
-/* calendar */
-.calendar{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-gap:6px;
+.toolbar{
+display:flex;
+gap:8px;
 }
-.day{
+
+.toolbar button{
 padding:8px;
-text-align:center;
-background:rgba(255,255,255,0.05);
+border:none;
 border-radius:8px;
+background:rgba(255,255,255,0.08);
+color:white;
 cursor:pointer;
 }
-.day:hover{background:rgba(255,255,255,0.15)}
 
-.timelineItem{
-padding:10px;
-margin:10px 0;
-border-left:2px solid white;
-padding-left:10px;
-}
-
-/* settings */
+/* SETTINGS */
 #settings{
 position:fixed;
 right:-320px;
 top:0;
 width:320px;
 height:100%;
-background:rgba(0,0,0,0.6);
+background:rgba(0,0,0,0.7);
 backdrop-filter:blur(20px);
-transition:0.4s;
 padding:15px;
+transition:0.4s;
 }
 #settings.open{right:0}
 
@@ -157,21 +113,22 @@ border-radius:10px;
 background:rgba(255,255,255,0.08);
 color:white;
 cursor:pointer;
+margin:5px 0;
 }
-button:hover{background:rgba(255,255,255,0.18)}
 
+/* POPUP (IN-WEBSITE TOAST) */
 #popup{
 position:fixed;
 bottom:20px;
 left:50%;
 transform:translateX(-50%);
+background:rgba(0,0,0,0.7);
 padding:10px 15px;
-background:rgba(0,0,0,0.6);
 border-radius:10px;
 opacity:0;
-transition:0.5s;
+transition:0.4s;
+pointer-events:none;
 }
-
 </style>
 </head>
 
@@ -182,10 +139,10 @@ transition:0.5s;
 <div id="overlay"></div>
 
 <!-- LOGIN -->
-<div id="winLogin">
-<div id="loginBox">
-<h2>Diaries Login</h2>
-<input type="password" id="pass" placeholder="Password">
+<div id="login">
+<div id="box">
+<h3>Login</h3>
+<input type="password" id="pass" placeholder="Password"><br><br>
 <button onclick="login()">Unlock</button>
 </div>
 </div>
@@ -194,18 +151,12 @@ transition:0.5s;
 <div id="app">
 
 <div id="topbar">
-<div>📔 Diaries PRO MAX</div>
-
+<div>📔 Diaries</div>
 <div>
-<span class="tab" data-tip="Write Entry ✍️" onclick="show('write')">✍️</span>
-<span class="tab" data-tip="All Entries 📜" onclick="show('entries')">📜</span>
-<span class="tab" data-tip="Search + Calendar 🔍📅" onclick="show('search')">🔍</span>
-<span class="tab" data-tip="Calendar 📅" onclick="show('calendar')">📅</span>
-<span class="tab" data-tip="Timeline ⏳" onclick="show('timeline')">⏳</span>
-<span class="tab" data-tip="Settings ⚙️" onclick="toggleSettings()">⚙️</span>
+<span class="tab" onclick="show('write')">✍️</span>
+<span class="tab" onclick="show('entries')">📜</span>
+<span class="tab" onclick="show('settings')">⚙️</span>
 </div>
-
-<button onclick="lock()">🔒</button>
 </div>
 
 <div id="content"></div>
@@ -215,199 +166,132 @@ transition:0.5s;
 <div id="settings">
 <h3>Settings</h3>
 
-<button onclick="changePassword()">Change Password</button>
-<button onclick="toggleMoodBG()">Toggle Mood BG</button>
-<button onclick="toggleRandomBG()">Toggle Random BG</button>
-<button onclick="clearEntries()">Clear Entries</button>
-<button onclick="exportData()">Export Data</button>
+<button onclick="toggleMood()">Mood BG: ON/OFF</button>
+<button onclick="toggleRandom()">Random BG: ON/OFF</button>
+<button onclick="toggleAuto()">Auto BG: ON/OFF</button>
 </div>
 
 <div id="popup"></div>
 
 <script>
 
-/* ===== CORE DATA ===== */
-let password = localStorage.getItem("password") || "adhvik_diary";
-let entries = JSON.parse(localStorage.getItem("entries") || "[]");
+/* CORE */
+let password="adhvik_ai";
+let entries=[];
 
-/* ===== FLAGS ===== */
-let moodBG = true;
-let randomBG = true;
+/* BG SETTINGS */
+let moodBG=true;
+let randomBG=true;
+let autoBG=true;
 
-/* ===== LOGIN ===== */
+/* POPUP (NO ALERTS EVER) */
+function toast(msg){
+popup.innerText=msg;
+popup.style.opacity=1;
+setTimeout(()=>popup.style.opacity=0,2000);
+}
+
+/* LOGIN */
 function login(){
-if(pass.value === password){
-winLogin.style.display="none";
+if(pass.value===password){
+login.style.display="none";
 app.style.display="flex";
 show("write");
-}else alert("Wrong Password");
+toast("Unlocked");
+}else{
+toast("Wrong password");
+}
 }
 
-function lock(){location.reload()}
-
-/* ===== SAVE ===== */
+/* SAVE */
 function save(text){
-entries.push({
-text,
-date:new Date().toLocaleString(),
-tags:autoTag(text),
-mood:detectMood(text)
-});
-localStorage.setItem("entries",JSON.stringify(entries));
+entries.push({text,date:new Date().toLocaleString()});
 }
 
-/* ===== TAG + MOOD ===== */
-function autoTag(t){
-let tags=[];
-if(/school|study|exam/i.test(t)) tags.push("study");
-if(/game|ps5/i.test(t)) tags.push("gaming");
-if(/sad|cry/i.test(t)) tags.push("sad");
-if(/happy/i.test(t)) tags.push("happy");
-return tags;
-}
-
-function detectMood(t){
-if(/sad|cry/i.test(t)) return "sad";
-if(/angry/i.test(t)) return "angry";
-if(/happy/i.test(t)) return "happy";
-return "neutral";
-}
-
-/* ===== BACKGROUND ===== */
-function bgMap(m){
-return {
-happy:"https://picsum.photos/1920/1080?happy",
-sad:"https://picsum.photos/1920/1080?sad",
-angry:"https://picsum.photos/1920/1080?fire",
-neutral:"https://picsum.photos/1920/1080?space"
-}[m];
-}
-
-function setBg(mood){
-if(!moodBG) return;
-let img=bgMap(mood||"neutral");
+/* BACKGROUND */
+function setBg(img){
 bg2.style.backgroundImage=`url(${img})`;
 bg2.style.opacity=1;
 bg.style.opacity=0;
+
 setTimeout(()=>{
 bg.style.backgroundImage=`url(${img})`;
 bg.style.opacity=1;
 bg2.style.opacity=0;
-},1200);
+},800);
 }
 
-/* RANDOM BACKGROUND */
-setInterval(()=>{
-if(!randomBG) return;
-let imgs=[
-"https://picsum.photos/1920/1080?1",
-"https://picsum.photos/1920/1080?2",
-"https://picsum.photos/1920/1080?3"
-];
-bg.style.backgroundImage=`url(${imgs[Math.floor(Math.random()*imgs.length)]})`;
-},10000);
+/* MOOD BG */
+function moodToBg(t){
+if(!moodBG) return null;
+if(/happy/i.test(t)) return "https://picsum.photos/1920/1080?happy";
+if(/sad/i.test(t)) return "https://picsum.photos/1920/1080?sad";
+return "https://picsum.photos/1920/1080?default";
+}
 
-/* ===== UI ===== */
+/* AUTO BG */
+setInterval(()=>{
+if(!autoBG) return;
+if(randomBG){
+setBg(`https://picsum.photos/1920/1080?rand=${Math.random()}`);
+}
+},8000);
+
+/* UI */
 function show(tab){
 
 if(tab==="write"){
 content.innerHTML=`
+<div class="writeBox">
 <textarea id="txt"></textarea>
-<button onclick="saveAndRender()">Save</button>`;
+
+<div class="toolbar">
+<button onclick="saveNow()">Save</button>
+<button onclick="toast('Emoji ready')">😊</button>
+<button onclick="toast('Image ready')">➕</button>
+</div>
+</div>
+`;
 }
 
 if(tab==="entries"){
 content.innerHTML=entries.map(e=>`
-<div class="entry">
-<b>${e.date}</b><br>
-${e.text}<br>
-<small>${(e.tags||[]).join(", ")}</small>
-</div>
-`).join("");
-}
-
-if(tab==="calendar"){
-let days=30;
-content.innerHTML="<h3>Calendar Search Enabled</h3>"+
-Array.from({length:days}).map((_,i)=>
-`<div class="day" onclick="calendarSearch(${i+1})">${i+1}</div>`
-).join("");
-}
-
-if(tab==="timeline"){
-content.innerHTML=[...entries].reverse().map(e=>`
-<div class="timelineItem">
-<b>${e.date}</b><br>${e.text}
-</div>
-`).join("");
-}
-
-if(tab==="search"){
-content.innerHTML=`
-<input oninput="search(this.value)" placeholder="Search + Date + Calendar">
-<div id="res"></div>
-`;
-}
-}
-
-/* ===== COMBINED SEARCH ===== */
-function search(q){
-let result=entries.filter(e=>
-e.text.includes(q) ||
-e.date.includes(q)
-);
-
-res.innerHTML=result.map(e=>`
 <div class="entry">${e.text}<br><small>${e.date}</small></div>
 `).join("");
 }
 
-/* calendar → search */
-function calendarSearch(day){
-let result=entries.filter(e=>e.date.includes(day));
-res.innerHTML=result.map(e=>`
-<div class="entry">${e.text}</div>
-`).join("");
+if(tab==="settings"){
+settings.classList.toggle("open");
+}
 }
 
-/* ===== SAVE ===== */
-function saveAndRender(){
-let text=txt.value;
-save(text);
-setBg(detectMood(text));
+/* SAVE */
+function saveNow(){
+let t=txt.value;
+save(t);
+toast("Saved");
+
+let bg=moodToBg(t);
+if(bg) setBg(bg);
+
 show("entries");
 }
 
-/* ===== SETTINGS ===== */
-function toggleSettings(){
-settings.classList.toggle("open");
+/* SETTINGS TOGGLES */
+function toggleMood(){
+moodBG=!moodBG;
+toast("Mood BG toggled");
 }
 
-function changePassword(){
-let p=prompt("New Password");
-if(p){password=p;localStorage.setItem("password",p);}
+function toggleRandom(){
+randomBG=!randomBG;
+toast("Random BG toggled");
 }
 
-function toggleMoodBG(){moodBG=!moodBG}
-function toggleRandomBG(){randomBG=!randomBG}
-
-function clearEntries(){
-if(confirm("Clear all?")){
-entries=[];
-localStorage.setItem("entries","[]");
+function toggleAuto(){
+autoBG=!autoBG;
+toast("Auto BG toggled");
 }
-}
-
-function exportData(){
-let blob=new Blob([JSON.stringify(entries)],{type:"application/json"});
-let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="diary.json";
-a.click();
-}
-
-/* INIT BG */
-bg.style.backgroundImage="https://picsum.photos/1920/1080?init";
 
 </script>
 

@@ -2,13 +2,13 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Diary OS AI</title>
+<title>Diary OS v4</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI}
-body{overflow:hidden;background:#000;color:white}
+body{overflow:hidden;background:black;color:white}
 
-/* ===== BACKGROUND ===== */
+/* BACKGROUND */
 .bg{
 position:fixed;inset:0;
 background-size:cover;
@@ -19,7 +19,6 @@ z-index:-5;
 #bg1{opacity:1}
 #bg2{opacity:0}
 
-/* overlay */
 .overlay{
 position:fixed;inset:0;
 background:rgba(0,0,0,0.35);
@@ -27,7 +26,7 @@ backdrop-filter:blur(18px);
 z-index:-1;
 }
 
-/* ===== LOCKSCREEN ===== */
+/* LOCK */
 #lockscreen{
 position:fixed;inset:0;
 display:flex;
@@ -37,26 +36,9 @@ align-items:center;
 gap:20px;
 }
 
-#clock{font-size:70px;font-weight:200}
+#clock{font-size:65px;font-weight:200}
 
-#login{
-display:flex;
-gap:10px;
-background:rgba(255,255,255,0.08);
-padding:10px;
-border-radius:12px;
-}
-
-input,textarea{
-background:rgba(255,255,255,0.08);
-border:none;
-color:white;
-outline:none;
-padding:8px;
-border-radius:8px;
-}
-
-/* ===== DESKTOP ===== */
+/* DESKTOP */
 #desktop{display:none;height:100vh}
 
 /* TASKBAR */
@@ -72,44 +54,46 @@ backdrop-filter:blur(20px);
 }
 
 .icon{
+padding:7px;
 cursor:pointer;
-padding:6px;
 border-radius:8px;
 position:relative;
+transition:0.2s;
 }
 
 .icon:hover{background:rgba(255,255,255,0.1)}
 
-/* tooltip */
-.icon:hover::after{
-content:attr(data-tip);
+/* TOOLTIP FIXED (NO ALERTS) */
+.tooltip{
 position:absolute;
 bottom:40px;
 left:50%;
 transform:translateX(-50%);
 background:black;
-padding:5px;
+padding:5px 8px;
 border-radius:6px;
 font-size:12px;
+white-space:nowrap;
+opacity:0;
+transition:0.2s;
+pointer-events:none;
 }
 
-/* ===== WINDOW SYSTEM ===== */
+.icon:hover .tooltip{
+opacity:1;
+}
+
+/* WINDOWS */
 .window{
 position:absolute;
-width:360px;
-height:340px;
-background:rgba(20,20,20,0.9);
+width:380px;
+height:360px;
+background:rgba(20,20,20,0.92);
 backdrop-filter:blur(20px);
 border-radius:12px;
 display:flex;
 flex-direction:column;
 overflow:hidden;
-animation:pop 0.2s ease;
-}
-
-@keyframes pop{
-from{transform:scale(0.9);opacity:0}
-to{transform:scale(1);opacity:1}
 }
 
 .titlebar{
@@ -120,6 +104,7 @@ background:rgba(255,255,255,0.08);
 cursor:grab;
 }
 
+/* CONTENT */
 .content{
 flex:1;
 display:flex;
@@ -128,7 +113,16 @@ padding:8px;
 gap:6px;
 }
 
-/* ===== SETTINGS ===== */
+/* DIARY LIST */
+.diaryItem{
+padding:6px;
+margin:4px 0;
+background:rgba(255,255,255,0.08);
+border-radius:6px;
+cursor:pointer;
+}
+
+/* SETTINGS PANEL */
 #settings{
 position:fixed;
 right:-320px;
@@ -143,23 +137,25 @@ z-index:999;
 }
 #settings.open{right:0}
 
-/* NOTIFICATIONS */
-#notif{
-position:fixed;
-top:10px;
-right:10px;
-display:flex;
-flex-direction:column;
-gap:5px;
-z-index:9999;
+button{
+background:rgba(255,255,255,0.1);
+border:none;
+padding:6px;
+border-radius:8px;
+color:white;
+cursor:pointer;
 }
-.toast{
-background:rgba(0,0,0,0.7);
+
+textarea{
+background:rgba(255,255,255,0.08);
+border:none;
+color:white;
 padding:8px;
 border-radius:8px;
-animation:fade 3s forwards;
+outline:none;
+resize:none;
+flex:1;
 }
-@keyframes fade{0%{opacity:1}100%{opacity:0}}
 
 </style>
 </head>
@@ -171,18 +167,10 @@ animation:fade 3s forwards;
 <div id="bg2" class="bg"></div>
 <div class="overlay"></div>
 
-<!-- NOTIFICATIONS -->
-<div id="notif"></div>
-
 <!-- LOCKSCREEN -->
 <div id="lockscreen">
 <div id="clock"></div>
-
-<div id="login">
-<input id="pass" type="password" placeholder="Password">
-<span onclick="togglePass()" style="cursor:pointer">👁️</span>
-<button onclick="login()">Enter</button>
-</div>
+<button onclick="unlock()">Enter OS</button>
 </div>
 
 <!-- DESKTOP -->
@@ -191,13 +179,21 @@ animation:fade 3s forwards;
 <div id="taskbar">
 
 <div>
-<span class="icon" data-tip="Diary" onclick="openDiary()">📔</span>
-<span class="icon" data-tip="AI" onclick="openAI()">🧠</span>
-<span class="icon" data-tip="Settings" onclick="toggleSettings()">⚙️</span>
+<div class="icon" onclick="openDiary()" onmouseover="tip(this,'Diary')" onmouseout="untip(this)">
+📔
+<span class="tooltip"></span>
 </div>
 
-<div>
-<span class="icon">🪟</span>
+<div class="icon" onclick="openAI()" onmouseover="tip(this,'AI Assistant')" onmouseout="untip(this)">
+🧠
+<span class="tooltip"></span>
+</div>
+
+<div class="icon" onclick="toggleSettings()" onmouseover="tip(this,'Settings')" onmouseout="untip(this)">
+⚙️
+<span class="tooltip"></span>
+</div>
+
 </div>
 
 </div>
@@ -208,15 +204,11 @@ animation:fade 3s forwards;
 <div id="settings">
 <h3>Settings</h3>
 <button onclick="changeBG()">Change BG</button>
-<button onclick="toggleAI()">AI Mode</button>
 </div>
 
 <script>
 
-/* ===== PASSWORD ===== */
-const PASSWORD="adhvik_diary";
-
-/* ===== BACKGROUND (INSTANT) ===== */
+/* ===== BACKGROUND ===== */
 const imgs=[
 "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
 "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
@@ -237,66 +229,117 @@ bg2.style.opacity=0;
 
 setBG(imgs[Math.floor(Math.random()*imgs.length)]);
 
-/* ===== CLOCK ===== */
+/* CLOCK */
 setInterval(()=>{
 clock.innerText=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
 },1000);
 
-/* ===== LOGIN ===== */
-function togglePass(){
-pass.type=pass.type==="password"?"text":"password";
-}
-
-function login(){
-if(pass.value===PASSWORD){
+/* UNLOCK */
+function unlock(){
 lockscreen.style.display="none";
 desktop.style.display="block";
-notify("Welcome back 👋");
-}else notify("Wrong password");
 }
 
-/* ===== NOTIFICATIONS ===== */
-function notify(msg){
-let n=document.createElement("div");
-n.className="toast";
-n.innerText=msg;
-notif.appendChild(n);
-setTimeout(()=>n.remove(),3000);
+/* TOOLTIP SYSTEM (NO ALERTS) */
+function tip(el,text){
+el.querySelector(".tooltip").innerText=text;
 }
 
-/* ===== SETTINGS ===== */
-let aiEnabled=true;
+function untip(el){
+el.querySelector(".tooltip").innerText="";
+}
 
+/* SETTINGS */
 function toggleSettings(){
 settings.classList.toggle("open");
 }
 
 function changeBG(){
 setBG(imgs[Math.floor(Math.random()*imgs.length)]);
-notify("Background changed");
 }
 
-function toggleAI(){
-aiEnabled=!aiEnabled;
-notify("AI: "+aiEnabled);
+/* ===== DIARY SYSTEM ===== */
+let diaries=JSON.parse(localStorage.getItem("diaries")||"[]");
+
+function saveDiary(text){
+diaries.push({
+text,
+time:new Date().toLocaleString()
+});
+localStorage.setItem("diaries",JSON.stringify(diaries));
+}
+
+/* OPEN DIARY WINDOW */
+function openDiary(){
+createWindow("Diary",`
+<textarea id="diaryBox" placeholder="Write..."></textarea>
+<button onclick="addDiary()">Save</button>
+<hr>
+<div id="list"></div>
+`);
+
+renderList();
+}
+
+function addDiary(){
+let t=document.getElementById("diaryBox").value;
+if(!t) return;
+
+saveDiary(t);
+document.getElementById("diaryBox").value="";
+renderList();
+}
+
+function renderList(){
+let list=document.getElementById("list");
+list.innerHTML="";
+
+diaries.slice().reverse().forEach((d,i)=>{
+let div=document.createElement("div");
+div.className="diaryItem";
+div.innerHTML=`${d.time}<br>${d.text.substring(0,30)}...`;
+div.onclick=()=>alert(d.text);
+list.appendChild(div);
+});
+}
+
+/* ===== AI ENGINE (REAL RESPONDER) ===== */
+function openAI(){
+createWindow("AI Assistant",`
+<textarea id="aiInput" placeholder="Ask me anything..."></textarea>
+<button onclick="sendAI()">Send</button>
+<div id="aiOut"></div>
+`);
+}
+
+function sendAI(){
+let input=document.getElementById("aiInput").value.toLowerCase();
+let out=document.getElementById("aiOut");
+
+let reply="";
+
+if(input.includes("hello")) reply="Hey 👋 I'm your Diary AI";
+else if(input.includes("sad")) reply="I'm here for you. Want to write it down?";
+else if(input.includes("diary")) reply="You can save thoughts in Diary tab 📔";
+else if(input.includes("time")) reply="Current time is "+new Date().toLocaleTimeString();
+else reply="I understand: "+input;
+
+out.innerHTML+="<div>"+reply+"</div>";
 }
 
 /* ===== WINDOW ENGINE ===== */
-let z=10;
-
-function win(title,html){
+function createWindow(title,content){
 let w=document.createElement("div");
 w.className="window";
 w.style.top="100px";
 w.style.left="100px";
-w.style.zIndex=z++;
 
 w.innerHTML=`
 <div class="titlebar">
 <span>${title}</span>
 <span onclick="this.closest('.window').remove()">✖</span>
 </div>
-<div class="content">${html}</div>
+<div class="content">${content}</div>
 `;
 
 document.body.appendChild(w);
@@ -308,7 +351,6 @@ w.querySelector(".titlebar").onmousedown=(e)=>{
 drag=true;
 ox=e.clientX-w.offsetLeft;
 oy=e.clientY-w.offsetTop;
-w.style.zIndex=z++;
 };
 
 document.onmousemove=(e)=>{
@@ -318,67 +360,7 @@ w.style.top=(e.clientY-oy)+"px";
 };
 
 document.onmouseup=()=>drag=false;
-
-return w;
 }
-
-/* ===== DIARY (INDEXEDDB READY HOOK) ===== */
-function openDiary(){
-win("Diary",`
-<textarea id="diaryBox" placeholder="Write..."></textarea>
-<div>
-<button onclick="saveDiary()">💾 Save</button>
-<button onclick="notify('Emoji')">😊</button>
-<button onclick="notify('Files')">➕</button>
-</div>
-`);
-}
-
-function saveDiary(){
-let text=document.getElementById("diaryBox").value;
-localStorage.setItem("diary",text);
-notify("Saved locally (IndexedDB upgrade ready)");
-}
-
-/* ===== AI SYSTEM ===== */
-function openAI(){
-win("AI Assistant",`
-<textarea id="aiInput" placeholder="Ask AI... (Enter to send, Shift+Enter new line)"></textarea>
-<div>
-<button onclick="sendAI()">Send</button>
-</div>
-<div id="aiOut"></div>
-`);
-
-let box=document.getElementById("aiInput");
-
-box.addEventListener("keydown",(e)=>{
-if(e.key==="Enter" && !e.shiftKey){
-e.preventDefault();
-sendAI();
-}
-});
-}
-
-/* MOCK AI + API READY */
-async function sendAI(){
-let input=document.getElementById("aiInput").value;
-let out=document.getElementById("aiOut");
-
-if(!aiEnabled){
-notify("AI disabled");
-return;
-}
-
-/* MOCK RESPONSE (replace with OpenAI API later) */
-let reply="🤖 AI: You said -> "+input;
-
-out.innerHTML+="<p>"+reply+"</p>";
-document.getElementById("aiInput").value="";
-}
-
-/* ===== STARTUP ===== */
-notify("Diary OS Loaded");
 
 </script>
 

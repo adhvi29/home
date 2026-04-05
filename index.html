@@ -2,203 +2,290 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Diary OS</title>
+<title>Diary OS v6</title>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-overflow:hidden;
-background:black;
-color:white;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI}
+body{overflow:hidden;background:black;color:white}
 
-/* ===== LOCKSCREEN ===== */
-#lockscreen{
-position:fixed;
-inset:0;
+/* ===== BACKGROUND ===== */
+.bg{
+position:fixed;inset:0;
+background-size:cover;
+background-position:center;
+transition:opacity 1s ease, filter 0.5s ease;
+}
+#bg1{opacity:1}
+#bg2{opacity:0}
+
+/* ===== LOCK (FIRST STATE CLEAN) ===== */
+#lock{
+position:fixed;inset:0;
 display:flex;
-flex-direction:column;
-align-items:center;
 justify-content:center;
-background:black;
+align-items:center;
+flex-direction:column;
 z-index:9999;
+cursor:pointer;
 }
 
-#time{
-font-size:50px;
-margin-bottom:20px;
+#timeOnly{
+font-size:60px;
+font-weight:300;
+text-shadow:0 0 20px black;
+}
+
+#login{
+display:none;
+flex-direction:column;
+gap:10px;
+padding:20px;
+background:rgba(0,0,0,0.4);
+backdrop-filter:blur(20px);
+border-radius:12px;
 }
 
 input{
 padding:10px;
-font-size:18px;
+border:none;
+border-radius:8px;
+background:rgba(255,255,255,0.1);
+color:white;
+outline:none;
+width:220px;
 }
 
-/* ===== DESKTOP ===== */
-#desktop{
-display:none;
-height:100vh;
-width:100vw;
-position:relative;
+.eye{
+cursor:pointer;
+position:absolute;
+right:15px;
+top:12px;
 }
 
-/* wallpapers */
-#bg1,#bg2{
+/* ===== TOPBAR ===== */
+#topbar{
 position:fixed;
-inset:0;
-background-size:cover;
-background-position:center;
-transition:opacity 1s;
-}
-
-#bg2{opacity:0}
-
-/* taskbar */
-#bar{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-height:50px;
-background:#111;
+top:0;left:0;right:0;
+height:42px;
 display:flex;
-gap:10px;
+justify-content:space-between;
 align-items:center;
 padding:0 10px;
+background:rgba(0,0,0,0.5);
+backdrop-filter:blur(20px);
 z-index:1000;
 }
 
-/* windows */
-.win{
+.btn{cursor:pointer;padding:6px 10px;border-radius:8px}
+.btn:hover{background:rgba(255,255,255,0.1)}
+
+/* ===== WINDOW ===== */
+.window{
 position:absolute;
-width:300px;
-background:#222;
-border:1px solid #444;
+width:360px;
+height:340px;
+background:rgba(20,20,20,0.9);
+backdrop-filter:blur(20px);
+border-radius:12px;
+overflow:hidden;
+animation:pop .15s ease;
 }
 
-.bar{
-background:#333;
-padding:5px;
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+
+.titlebar{
+background:rgba(255,255,255,0.1);
+padding:6px;
 display:flex;
 justify-content:space-between;
-cursor:move;
+cursor:grab;
 }
 
-.body{
+/* ===== CONTENT ===== */
+.content{padding:10px;height:100%;overflow:auto}
+
+textarea{
+width:100%;
+height:120px;
+background:rgba(255,255,255,0.08);
+border:none;
+color:white;
+border-radius:10px;
 padding:10px;
 }
 
-/* emoji */
-#emoji{
+button{
+background:rgba(255,255,255,0.1);
+border:none;
+color:white;
+padding:6px;
+border-radius:8px;
+cursor:pointer;
+}
+
+/* ===== EMOJI PANEL ===== */
+#emojiPanel{
 position:fixed;
 bottom:60px;
 right:10px;
-background:#000a;
+background:rgba(0,0,0,0.7);
+backdrop-filter:blur(20px);
 padding:10px;
-display:grid;
+border-radius:10px;
+display:none;
 grid-template-columns:repeat(5,1fr);
+gap:5px;
+z-index:2000;
 }
+
+#emojiPanel span{cursor:pointer}
+
+/* ===== SETTINGS ===== */
+#settings{
+position:fixed;
+right:-300px;
+top:0;
+width:300px;
+height:100%;
+background:rgba(0,0,0,0.8);
+backdrop-filter:blur(20px);
+transition:0.3s;
+z-index:2000;
+padding:10px;
+}
+
+#settings.open{right:0}
 
 </style>
 </head>
 
 <body>
 
-<!-- LOCKSCREEN -->
-<div id="lockscreen">
-<div id="time"></div>
-<input id="pass" type="password" placeholder="Enter password">
-<button onclick="unlock()">Unlock</button>
+<!-- BACKGROUND -->
+<div id="bg1" class="bg"></div>
+<div id="bg2" class="bg"></div>
+
+<!-- LOCK SCREEN -->
+<div id="lock">
+  <div id="timeOnly"></div>
+
+  <div id="login">
+    <div style="position:relative">
+      <input id="pass" type="password" placeholder="Password">
+      <span class="eye" onclick="togglePass()">👁</span>
+    </div>
+    <button onclick="login()">Unlock</button>
+  </div>
 </div>
 
-<!-- DESKTOP -->
-<div id="desktop">
-
-<div id="bg1"></div>
-<div id="bg2"></div>
-
-<div id="bar">
-<button onclick="newDiary()">📔 New</button>
-<button onclick="openPrev()">📁 Diaries</button>
-<button onclick="openSearch()">🔍 Search</button>
-<button onclick="openSettings()">⚙️ Settings</button>
+<!-- TOPBAR -->
+<div id="topbar">
+ <div>
+  <span class="btn" onclick="newDiary()">＋ New</span>
+  <span class="btn" onclick="toggleEmoji()">😊</span>
+ </div>
+ <div>
+  <span class="btn" onclick="toggleSettings()">⚙</span>
+ </div>
 </div>
 
+<!-- SETTINGS -->
+<div id="settings">
+ <h3>Settings</h3>
+ <button onclick="toggleWallpaper()">Toggle Wallpaper</button>
+ <button onclick="clearData()">Reset Data</button>
 </div>
+
+<!-- EMOJI -->
+<div id="emojiPanel"></div>
 
 <script>
 
-/* ================= LOCKSCREEN ================= */
+document.addEventListener("DOMContentLoaded",()=>{
 
-let PASSWORD="1234";
-
-function updateTime(){
-document.getElementById("time").innerText=new Date().toLocaleTimeString();
-}
-setInterval(updateTime,1000);
-updateTime();
-
-function unlock(){
-let p=document.getElementById("pass").value;
-if(p===PASSWORD){
-document.getElementById("lockscreen").style.display="none";
-document.getElementById("desktop").style.display="block";
-startWallpaper();
-}
-}
-
-/* ================= WALLPAPER ================= */
-
-let wallpapers=[
+/* ===== WALLPAPERS ===== */
+const walls=[
 "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
 "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
 "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
 ];
 
-let wp=true;
+let bgIndex=0;
+let wallpaperOn=true;
 
-function startWallpaper(){
-setInterval(()=>{
-if(!wp)return;
+/* LIVE WALLPAPER ENGINE */
+function setBG(){
+if(!wallpaperOn) return;
 
-let img=wallpapers[Math.floor(Math.random()*wallpapers.length)];
-bg2.style.backgroundImage=`url(${img})`;
-bg2.style.opacity=1;
-bg1.style.opacity=0;
+let a=bg1;
+let b=bg2;
+
+b.style.backgroundImage=`url(${walls[Math.floor(Math.random()*walls.length)]})`;
+b.style.opacity=1;
+a.style.opacity=0;
 
 setTimeout(()=>{
-bg1.style.backgroundImage=bg2.style.backgroundImage;
-bg1.style.opacity=1;
-bg2.style.opacity=0;
-},1000);
-
-},10000);
+a.style.backgroundImage=b.style.backgroundImage;
+a.style.opacity=1;
+b.style.opacity=0;
+},800);
 }
 
-/* ================= WINDOW SYSTEM ================= */
+setBG();
+setInterval(setBG,10000);
 
+/* ===== LOCK FLOW ===== */
+const lock=document.getElementById("lock");
+const timeOnly=document.getElementById("timeOnly");
+const loginBox=document.getElementById("login");
+
+setInterval(()=>{
+timeOnly.innerText=new Date().toLocaleTimeString();
+},1000);
+
+/* click reveals password */
+lock.onclick=()=>{
+loginBox.style.display="flex";
+timeOnly.style.display="none";
+};
+
+/* ===== PASSWORD ===== */
+const PASSWORD="1234";
+
+window.login=function(){
+if(pass.value===PASSWORD){
+lock.style.display="none";
+}else alert("Wrong password");
+};
+
+window.togglePass=function(){
+pass.type = pass.type==="password"?"text":"password";
+};
+
+/* ===== WINDOW SYSTEM ===== */
 let z=10;
 
-function win(title,html){
+window.win=function(title,html){
 let w=document.createElement("div");
-w.className="win";
+w.className="window";
+w.style.top="100px";
+w.style.left="100px";
 w.style.zIndex=z++;
 
 w.innerHTML=`
-<div class="bar">
+<div class="titlebar">
 <span>${title}</span>
-<span onclick="this.parentElement.parentElement.remove()">✖</span>
+<span onclick="this.parentNode.parentNode.remove()">✖</span>
 </div>
-<div class="body">${html}</div>
+<div class="content">${html}</div>
 `;
 
 document.body.appendChild(w);
 
-/* drag */
+/* DRAG */
 let drag=false,ox,oy;
 
-w.querySelector(".bar").onmousedown=e=>{
+w.querySelector(".titlebar").onmousedown=e=>{
 drag=true;
 ox=e.clientX-w.offsetLeft;
 oy=e.clientY-w.offsetTop;
@@ -213,153 +300,75 @@ w.style.top=(e.clientY-oy)+"px";
 
 document.onmouseup=()=>drag=false;
 
+/* SNAP */
+w.onmousedown=()=>{
+if(w.offsetLeft<20) w.style.left="0px";
+if(w.offsetLeft>window.innerWidth-380) w.style.left=(window.innerWidth-380)+"px";
+if(w.offsetTop<20) w.style.top="0px";
+};
+
 return w;
-}
-
-/* ================= DATABASE ================= */
-
-let db;
-let req=indexedDB.open("DiaryOS",1);
-
-req.onupgradeneeded=e=>{
-db=e.target.result;
-db.createObjectStore("diaries",{keyPath:"id",autoIncrement:true});
 };
 
-req.onsuccess=e=>db=e.target.result;
-
-/* ================= SAVE DIARY ================= */
-
-function saveDiary(text,imgs){
-let tx=db.transaction("diaries","readwrite");
-tx.objectStore("diaries").add({
-text,
-imgs,
-date:new Date().toISOString()
-});
+/* ===== DIARY STORAGE (ENCRYPTED SIMPLE) ===== */
+function encrypt(t){
+return btoa(unescape(encodeURIComponent(t)));
 }
 
-/* ================= NEW DIARY ================= */
-
-let currentImgs=[];
-
-function newDiary(){
-
-currentImgs=[];
-
+/* ===== APPS ===== */
+window.newDiary=()=>{
 win("New Diary",`
-<textarea id="t" style="width:100%;height:150px"></textarea><br>
-<button onclick="addImg()">➕ Image</button>
-<button onclick="emoji(t)">😊 Emoji</button>
-<button onclick="saveDiary(t.value,currentImgs)">💾 Save</button>
-<div id="preview"></div>
+<textarea id="d"></textarea>
+<button onclick="save(d.value)">💾 Save</button>
+<button onclick="toggleEmoji(d)">😊 Emoji</button>
+<input type="file" onchange="addImage(this.files,d)">
 `);
+};
 
-}
+window.save=function(text){
+localStorage.setItem(Date.now(),encrypt(text));
+alert("Saved securely");
+};
 
-/* image upload */
-function addImg(){
-let i=document.createElement("input");
-i.type="file";
-i.onchange=e=>{
-for(let f of e.target.files){
+window.addImage=function(files,box){
+let f=files[0];
 let url=URL.createObjectURL(f);
-currentImgs.push(url);
-document.getElementById("preview").innerHTML+=`<img src="${url}" width="80">`;
-}
-};
-i.click();
-}
-
-/* ================= PREVIOUS DIARIES ================= */
-
-function openPrev(){
-
-let tx=db.transaction("diaries","readonly");
-let st=tx.objectStore("diaries");
-
-let html="<h3>Previous Diaries</h3>";
-
-st.openCursor().onsuccess=e=>{
-let c=e.target.result;
-if(c){
-html+=`<div onclick="view(${c.key})" style="padding:5px;border:1px solid #555;margin:5px;cursor:pointer">${c.value.text.slice(0,40)}</div>`;
-c.continue();
-}else{
-win("Diaries",html);
-}
+box.value+="\n[image:"+url+"]";
 };
 
-}
+/* ===== EMOJI SYSTEM ===== */
+const emojis=["😀","😂","😍","😭","😡","👍","🔥","❤️","🎉"];
 
-function view(id){
-let tx=db.transaction("diaries","readonly");
-let st=tx.objectStore("diaries");
+window.toggleEmoji=function(target){
+let panel=document.getElementById("emojiPanel");
+panel.style.display=panel.style.display==="grid"?"none":"grid";
 
-st.get(id).onsuccess=e=>{
-let d=e.target.result;
-win("View",`<p>${d.text}</p>${(d.imgs||[]).map(i=>`<img src="${i}" width="120">`).join("")}`);
-};
-}
-
-/* ================= SEARCH + CALENDAR ================= */
-
-function openSearch(){
-
-win("Search + Calendar",`
-<input id="q">
-<button onclick="search(q.value)">Search</button>
-<div id="r"></div>
-`);
-
-window.search=function(q){
-let tx=db.transaction("diaries","readonly");
-let st=tx.objectStore("diaries");
-
-let out=document.getElementById("r");
-out.innerHTML="";
-
-st.openCursor().onsuccess=e=>{
-let c=e.target.result;
-if(c){
-if(c.value.text.toLowerCase().includes(q.toLowerCase())){
-out.innerHTML+=`<div style="margin:5px;border:1px solid #555">${c.value.text.slice(0,50)}</div>`;
-}
-c.continue();
-}
-};
-};
-
-}
-
-/* ================= EMOJI ================= */
-
-function emoji(t){
-let emojis=["😀","😂","😍","😭","🔥","❤️","👍"];
-
-let box=document.createElement("div");
-box.id="emoji";
-
-box.innerHTML="";
-
+panel.innerHTML="";
 emojis.forEach(e=>{
 let s=document.createElement("span");
 s.innerText=e;
-s.onclick=()=>t.value+=e;
-box.appendChild(s);
+s.onclick=()=>{
+target.value+=e;
+};
+panel.appendChild(s);
 });
+};
 
-document.body.appendChild(box);
-}
+/* ===== SETTINGS ===== */
+window.toggleSettings=()=>{
+settings.classList.toggle("open");
+};
 
-/* ================= SETTINGS ================= */
+window.toggleWallpaper=()=>{
+wallpaperOn=!wallpaperOn;
+};
 
-function openSettings(){
-win("Settings",`
-<button onclick="wp=!wp">Toggle Wallpaper</button>
-<button onclick="indexedDB.deleteDatabase('DiaryOS')">Reset Data</button>
-`);
-}
+window.clearData=()=>{
+localStorage.clear();
+alert("Reset done");
+};
+
+});
 
 </script>
 

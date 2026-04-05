@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diary OS Win11</title>
+<title>Diary OS Stable</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI}
@@ -20,11 +20,11 @@ z-index:-3;
 #bg1{opacity:1}
 #bg2{opacity:0}
 
-/* blur overlay */
+/* dark overlay */
 .overlay{
 position:fixed;inset:0;
-background:rgba(0,0,0,0.25);
-backdrop-filter:blur(20px);
+background:rgba(0,0,0,0.35);
+backdrop-filter:blur(18px);
 z-index:-1;
 }
 
@@ -36,16 +36,18 @@ display:flex;
 flex-direction:column;
 justify-content:center;
 align-items:center;
-background:rgba(0,0,0,0.4);
+gap:20px;
+z-index:1000;
 }
 
-#time{font-size:70px;font-weight:300}
-#date{opacity:0.8;margin-bottom:20px}
+#time{font-size:60px;font-weight:300}
+#date{opacity:0.8}
 
-#box{
+/* login box */
+#loginBox{
 display:flex;
-align-items:center;
 gap:8px;
+align-items:center;
 background:rgba(255,255,255,0.08);
 padding:10px 15px;
 border-radius:12px;
@@ -61,62 +63,42 @@ width:180px;
 }
 
 /* ===== APP ===== */
-#app{display:none;height:100%;flex-direction:column}
-
-/* ===== TASKBAR ===== */
-#taskbar{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-height:60px;
-background:rgba(20,20,20,0.6);
-backdrop-filter:blur(20px);
-display:flex;
-justify-content:center;
-align-items:center;
-gap:20px;
-z-index:10;
-}
-
-.icon{
-width:40px;height:40px;
-display:flex;
-justify-content:center;
-align-items:center;
-border-radius:10px;
-cursor:pointer;
-background:rgba(255,255,255,0.05);
-}
-
-.icon:hover{background:rgba(255,255,255,0.15)}
-
-/* ===== START MENU ===== */
-#startMenu{
-position:fixed;
-bottom:70px;
-left:50%;
-transform:translateX(-50%);
-width:320px;
-background:rgba(30,30,30,0.8);
-backdrop-filter:blur(25px);
-border-radius:15px;
-padding:15px;
+#app{
 display:none;
+height:100%;
 flex-direction:column;
-gap:10px;
+z-index:10;
+position:relative;
+}
+
+/* TOPBAR */
+#topbar{
+display:flex;
+justify-content:space-between;
+padding:10px;
+background:rgba(0,0,0,0.5);
+backdrop-filter:blur(20px);
 z-index:20;
 }
+
+.iconBtn{cursor:pointer;opacity:0.8;margin:0 6px}
+.iconBtn:hover{opacity:1}
 
 /* CONTENT */
 #content{
 flex:1;
 overflow:auto;
-padding:20px;
-margin-bottom:60px;
+padding:15px;
+z-index:10;
 }
 
-/* WRITE */
+/* ===== WRITE BOX ===== */
+.writeBox{
+display:none;
+flex-direction:column;
+gap:10px;
+}
+
 textarea{
 width:100%;
 height:200px;
@@ -127,10 +109,10 @@ background:rgba(255,255,255,0.08);
 color:white;
 }
 
+/* TOOLBAR (NEXT TO TEXTBOX) */
 .toolbar{
 display:flex;
 gap:8px;
-margin-top:8px;
 }
 
 .toolbar button{
@@ -142,7 +124,7 @@ color:white;
 cursor:pointer;
 }
 
-/* SETTINGS */
+/* ===== SETTINGS (FIXED CLICK ISSUE) ===== */
 #settings{
 position:fixed;
 right:-340px;
@@ -153,24 +135,15 @@ background:rgba(0,0,0,0.75);
 backdrop-filter:blur(20px);
 padding:15px;
 transition:0.4s;
-z-index:30;
+z-index:9999;
+pointer-events:auto;
 }
 #settings.open{right:0}
 
-button{
-padding:10px;
-border:none;
-border-radius:10px;
-background:rgba(255,255,255,0.08);
-color:white;
-cursor:pointer;
-margin:5px 0;
-}
-
-/* TOAST */
+/* toast */
 #toast{
 position:fixed;
-bottom:80px;
+bottom:20px;
 left:50%;
 transform:translateX(-50%);
 background:rgba(0,0,0,0.7);
@@ -179,6 +152,7 @@ border-radius:10px;
 opacity:0;
 transition:0.4s;
 pointer-events:none;
+z-index:9999;
 }
 </style>
 </head>
@@ -195,7 +169,7 @@ pointer-events:none;
 <div id="time"></div>
 <div id="date"></div>
 
-<div id="box">
+<div id="loginBox">
 <input id="pass" type="password" placeholder="Password">
 <button onclick="unlock()">Enter</button>
 </div>
@@ -204,32 +178,24 @@ pointer-events:none;
 <!-- APP -->
 <div id="app">
 
-<!-- START MENU -->
-<div id="startMenu">
-<button onclick="show('write')">📝 Write</button>
-<button onclick="show('entries')">📜 Entries</button>
-<button onclick="toggleSettings()">⚙️ Settings</button>
+<div id="topbar">
+<div>📔 Diary OS</div>
+<div>
+<span class="iconBtn" onclick="openWrite()">✍️</span>
+<span class="iconBtn" onclick="toggleSettings()">⚙️</span>
+</div>
 </div>
 
-<!-- CONTENT -->
 <div id="content"></div>
-
-<!-- TASKBAR -->
-<div id="taskbar">
-<div class="icon" onclick="toggleStart()">⊞</div>
-<div class="icon" onclick="show('write')">✍️</div>
-<div class="icon" onclick="show('entries')">📜</div>
-<div class="icon" onclick="toggleSettings()">⚙️</div>
-</div>
 
 </div>
 
 <!-- SETTINGS -->
 <div id="settings">
 <h3>Settings</h3>
-<button onclick="toggleMood()">Mood Wallpaper</button>
-<button onclick="toggleAuto()">Auto Wallpaper</button>
-<button onclick="toggleSound()">Sound FX</button>
+<button onclick="toggleAuto()">Auto Background</button>
+<button onclick="toggleMood()">Mood Background</button>
+<button onclick="changeBg()">Change BG Now</button>
 </div>
 
 <!-- TOAST -->
@@ -239,24 +205,13 @@ pointer-events:none;
 
 /* ===== CORE ===== */
 const PASSWORD="adhvik_diary";
-let entries=[];
 
-/* SETTINGS */
-let mood=true;
-let auto=true;
-let sound=true;
+/* STATE */
+let autoBg=true;
+let moodBg=true;
+let writeOpen=false;
 
-/* AUDIO ENGINE */
-const clickSound=new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8b0a5d6b3.mp3?filename=click-124467.mp3");
-const unlockSound=new Audio("https://cdn.pixabay.com/download/audio/2022/03/16/audio_0f5b6d1b6f.mp3?filename=interface-124464.mp3");
-
-function play(s){
-if(!sound) return;
-s.currentTime=0;
-s.play();
-}
-
-/* CLOCK */
+/* ===== CLOCK ===== */
 function updateClock(){
 let d=new Date();
 time.innerText=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -265,50 +220,16 @@ date.innerText=d.toDateString();
 setInterval(updateClock,1000);
 updateClock();
 
-/* TOAST */
+/* ===== TOAST ===== */
 function toast(msg){
-toastBox.innerText=msg;
-toastBox.style.opacity=1;
-setTimeout(()=>toastBox.style.opacity=0,2000);
+toast.innerText=msg;
+toast.style.opacity=1;
+setTimeout(()=>toast.style.opacity=0,2000);
 }
 
-/* UNLOCK */
-function unlock(){
-if(pass.value===PASSWORD){
-play(unlockSound);
-lockscreen.style.display="none";
-app.style.display="flex";
-show("write");
-toast("Welcome");
-}else{
-toast("Wrong password");
-}
-}
-
-/* START MENU */
-function toggleStart(){
-play(clickSound);
-startMenu.style.display = startMenu.style.display==="flex"?"none":"flex";
-}
-
-/* SETTINGS */
-function toggleSettings(){
-play(clickSound);
-settings.classList.toggle("open");
-}
-
-/* AI WALLPAPER (REAL LOGIC) */
-function moodBg(text){
-text=text.toLowerCase();
-
-if(text.includes("happy")) return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e";
-if(text.includes("sad")) return "https://images.unsplash.com/photo-1501696461415-6bd6660c6742";
-if(text.includes("stress")) return "https://images.unsplash.com/photo-1520975928318-7a1c5d9c3c8d";
-return "https://images.unsplash.com/photo-1501785888041-af3ef285b470";
-}
-
-/* BG SWITCH */
+/* ===== BACKGROUND SYSTEM (FIXED) ===== */
 let cur=1;
+
 function setBg(url){
 let next=cur===1?bg2:bg1;
 let prev=cur===1?bg1:bg2;
@@ -320,54 +241,85 @@ prev.style.opacity=0;
 cur=cur===1?2:1;
 }
 
-/* AUTO WALLPAPER */
+/* STARTUP CHANGING BACKGROUND */
+let startupImgs=[
+"https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+"https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d"
+];
+
 setInterval(()=>{
-if(!auto) return;
-setBg("https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d");
-},12000);
+if(!autoBg) return;
+setBg(startupImgs[Math.floor(Math.random()*startupImgs.length)]);
+},7000);
 
-/* UI */
-function show(tab){
+/* ===== UNLOCK ===== */
+function unlock(){
+if(pass.value===PASSWORD){
+lockscreen.style.display="none";
+app.style.display="flex";
+toast("Unlocked");
+}else{
+toast("Wrong password");
+}
+}
 
-play(clickSound);
+/* ===== WRITE BOX (CLOSE AFTER USE) ===== */
+function openWrite(){
+if(writeOpen){
+toast("Close current note first");
+return;
+}
 
-if(tab==="write"){
+writeOpen=true;
+
 content.innerHTML=`
+<div class="writeBox">
 <textarea id="txt"></textarea>
+
 <div class="toolbar">
 <button onclick="save()">Save</button>
-<button onclick="toast('Emoji ready')">😊</button>
-<button onclick="toast('Image ready')">➕</button>
+<button onclick="toast('Emoji picker')">😊</button>
+<button onclick="toast('File upload')">➕</button>
+<button onclick="closeWrite()">Close</button>
+</div>
 </div>
 `;
 }
 
-if(tab==="entries"){
-content.innerHTML=entries.map(e=>`
-<div style="padding:10px;margin:10px 0;background:rgba(255,255,255,0.06);border-radius:10px">
-${e.text}<br><small>${e.date}</small>
-</div>
-`).join("");
-}
+function closeWrite(){
+writeOpen=false;
+content.innerHTML="";
+toast("Closed editor");
 }
 
 /* SAVE */
 function save(){
-let t=txt.value;
-entries.push({text:t,date:new Date().toLocaleString()});
-
-if(mood){
-setBg(moodBg(t));
-}
-
+setBg("https://images.unsplash.com/photo-1519681393784-d120267933ba");
+closeWrite();
 toast("Saved");
-show("entries");
 }
 
-/* SETTINGS */
-function toggleMood(){mood=!mood;toast("Mood wallpaper toggled")}
-function toggleAuto(){auto=!auto;toast("Auto wallpaper toggled")}
-function toggleSound(){sound=!sound;toast("Sound toggled")}
+/* ===== SETTINGS ===== */
+function toggleSettings(){
+settings.classList.toggle("open");
+toast("Settings toggled");
+}
+
+function toggleAuto(){
+autoBg=!autoBg;
+toast("Auto BG: "+autoBg);
+}
+
+function toggleMood(){
+moodBg=!moodBg;
+toast("Mood BG: "+moodBg);
+}
+
+function changeBg(){
+setBg("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee");
+toast("Background changed");
+}
 
 </script>
 

@@ -3,54 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diaries PRO MAX</title>
+<title>Diary OS</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI}
 html,body{height:100%;overflow:hidden;background:#000;color:#fff}
 
-/* BACKGROUND */
-#bg,#bg2{
-position:fixed;inset:0;
+/* ===== BACKGROUND ENGINE (REWRITTEN) ===== */
+.bg{
+position:fixed;
+inset:0;
 background-size:cover;
 background-position:center;
-transition:opacity 1s ease;
+transition:opacity 1s ease, transform 20s linear;
 z-index:-3;
 }
+
+#bg1{opacity:1}
 #bg2{opacity:0}
 
-#overlay{
-position:fixed;inset:0;
-background:rgba(0,0,0,0.6);
+/* blur overlay like Windows */
+.overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.35);
+backdrop-filter:blur(18px);
 z-index:-1;
 }
 
-/* LOGIN */
-#login{
-position:fixed;inset:0;
+/* ===== LOCKSCREEN (WINDOWS STYLE) ===== */
+#lockscreen{
+position:fixed;
+inset:0;
 display:flex;
+flex-direction:column;
 justify-content:center;
 align-items:center;
-background:rgba(0,0,0,0.8);
-backdrop-filter:blur(20px);
-}
-
-#box{
-padding:25px;
-border-radius:15px;
-background:rgba(255,255,255,0.06);
 text-align:center;
+background:rgba(0,0,0,0.4);
 }
 
-/* APP */
+#time{
+font-size:64px;
+font-weight:300;
+}
+
+#date{
+opacity:0.8;
+margin-bottom:30px;
+}
+
+/* password box */
+#loginBox{
+display:flex;
+align-items:center;
+gap:8px;
+background:rgba(255,255,255,0.08);
+padding:10px 15px;
+border-radius:12px;
+backdrop-filter:blur(10px);
+}
+
+#pass{
+background:transparent;
+border:none;
+outline:none;
+color:white;
+width:180px;
+font-size:16px;
+}
+
+#eye{
+cursor:pointer;
+opacity:0.8;
+}
+
+/* ===== APP ===== */
 #app{display:none;height:100%;flex-direction:column}
 
 #topbar{
 display:flex;
 justify-content:space-between;
-padding:10px;
+padding:10px 14px;
 background:rgba(0,0,0,0.4);
-backdrop-filter:blur(15px);
+backdrop-filter:blur(20px);
 }
 
 .tab{margin:0 6px;cursor:pointer;opacity:0.7}
@@ -58,16 +94,7 @@ backdrop-filter:blur(15px);
 
 #content{flex:1;overflow:auto;padding:15px}
 
-/* ENTRY */
-.entry{
-background:rgba(255,255,255,0.06);
-padding:12px;
-margin:8px 0;
-border-radius:12px;
-}
-
 /* WRITE */
-.writeBox{display:flex;flex-direction:column;gap:10px}
 textarea{
 width:100%;
 height:200px;
@@ -78,15 +105,17 @@ background:rgba(255,255,255,0.08);
 color:white;
 }
 
+/* TOOLBAR */
 .toolbar{
 display:flex;
 gap:8px;
+margin-top:8px;
 }
 
 .toolbar button{
 padding:8px;
 border:none;
-border-radius:8px;
+border-radius:10px;
 background:rgba(255,255,255,0.08);
 color:white;
 cursor:pointer;
@@ -116,8 +145,8 @@ cursor:pointer;
 margin:5px 0;
 }
 
-/* POPUP (IN-WEBSITE TOAST) */
-#popup{
+/* TOAST */
+#toast{
 position:fixed;
 bottom:20px;
 left:50%;
@@ -134,16 +163,20 @@ pointer-events:none;
 
 <body>
 
-<div id="bg"></div>
-<div id="bg2"></div>
-<div id="overlay"></div>
+<!-- BACKGROUND -->
+<div id="bg1" class="bg"></div>
+<div id="bg2" class="bg"></div>
+<div class="overlay"></div>
 
-<!-- LOGIN -->
-<div id="login">
-<div id="box">
-<h3>Login</h3>
-<input type="password" id="pass" placeholder="Password"><br><br>
-<button onclick="login()">Unlock</button>
+<!-- LOCKSCREEN -->
+<div id="lockscreen">
+<div id="time"></div>
+<div id="date"></div>
+
+<div id="loginBox">
+<input id="pass" type="password" placeholder="Password">
+<span id="eye" onclick="toggleEye()">👁️</span>
+<button onclick="unlock()">Enter</button>
 </div>
 </div>
 
@@ -151,11 +184,11 @@ pointer-events:none;
 <div id="app">
 
 <div id="topbar">
-<div>📔 Diaries</div>
+<div>📔 Diary OS</div>
 <div>
 <span class="tab" onclick="show('write')">✍️</span>
 <span class="tab" onclick="show('entries')">📜</span>
-<span class="tab" onclick="show('settings')">⚙️</span>
+<span class="tab" onclick="toggleSettings()">⚙️</span>
 </div>
 </div>
 
@@ -165,36 +198,49 @@ pointer-events:none;
 <!-- SETTINGS -->
 <div id="settings">
 <h3>Settings</h3>
-
-<button onclick="toggleMood()">Mood BG: ON/OFF</button>
-<button onclick="toggleRandom()">Random BG: ON/OFF</button>
-<button onclick="toggleAuto()">Auto BG: ON/OFF</button>
+<button onclick="toggleMood()">Mood BG</button>
+<button onclick="toggleRandom()">Random BG</button>
+<button onclick="toggleAuto()">Auto BG</button>
 </div>
 
-<div id="popup"></div>
+<div id="toast"></div>
 
 <script>
 
-/* CORE */
-let password="adhvik_ai";
-let entries=[];
+/* ===== PASSWORD (FIXED ALWAYS) ===== */
+const PASSWORD="adhvik_diary";
 
-/* BG SETTINGS */
+/* ===== STATE ===== */
+let entries=[];
 let moodBG=true;
 let randomBG=true;
 let autoBG=true;
 
-/* POPUP (NO ALERTS EVER) */
-function toast(msg){
-popup.innerText=msg;
-popup.style.opacity=1;
-setTimeout(()=>popup.style.opacity=0,2000);
+/* ===== CLOCK ===== */
+function updateClock(){
+let d=new Date();
+time.innerText=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+date.innerText=d.toDateString();
+}
+setInterval(updateClock,1000);
+updateClock();
+
+/* ===== EYE BUTTON ===== */
+function toggleEye(){
+pass.type = pass.type==="password" ? "text":"password";
 }
 
-/* LOGIN */
-function login(){
-if(pass.value===password){
-login.style.display="none";
+/* ===== TOAST (NO ALERT EVER) ===== */
+function toast(msg){
+toastBox.innerText=msg;
+toastBox.style.opacity=1;
+setTimeout(()=>toastBox.style.opacity=0,2000);
+}
+
+/* ===== UNLOCK ===== */
+function unlock(){
+if(pass.value===PASSWORD){
+lockscreen.style.display="none";
 app.style.display="flex";
 show("write");
 toast("Unlocked");
@@ -203,60 +249,56 @@ toast("Wrong password");
 }
 }
 
-/* SAVE */
-function save(text){
-entries.push({text,date:new Date().toLocaleString()});
-}
+/* ===== BACKGROUND ENGINE (FIXED CORE) ===== */
+let current=1;
 
-/* BACKGROUND */
-function setBg(img){
-bg2.style.backgroundImage=`url(${img})`;
-bg2.style.opacity=1;
-bg.style.opacity=0;
+function setBg(url){
+let next=current===1?bg2:bg1;
+let prev=current===1?bg1:bg2;
 
-setTimeout(()=>{
-bg.style.backgroundImage=`url(${img})`;
-bg.style.opacity=1;
-bg2.style.opacity=0;
-},800);
-}
+next.style.backgroundImage=`url(${url})`;
+next.style.opacity=1;
+prev.style.opacity=0;
 
-/* MOOD BG */
-function moodToBg(t){
-if(!moodBG) return null;
-if(/happy/i.test(t)) return "https://picsum.photos/1920/1080?happy";
-if(/sad/i.test(t)) return "https://picsum.photos/1920/1080?sad";
-return "https://picsum.photos/1920/1080?default";
+current=current===1?2:1;
 }
 
 /* AUTO BG */
 setInterval(()=>{
 if(!autoBG) return;
 if(randomBG){
-setBg(`https://picsum.photos/1920/1080?rand=${Math.random()}`);
+setBg(`https://picsum.photos/1920/1080?random=${Math.random()}`);
 }
 },8000);
 
-/* UI */
+/* MOOD BG */
+function moodToBg(text){
+if(!moodBG) return null;
+if(/happy/i.test(text)) return "https://picsum.photos/1920/1080?happy";
+if(/sad/i.test(text)) return "https://picsum.photos/1920/1080?sad";
+return null;
+}
+
+/* ===== UI ===== */
 function show(tab){
 
 if(tab==="write"){
 content.innerHTML=`
-<div class="writeBox">
 <textarea id="txt"></textarea>
 
 <div class="toolbar">
-<button onclick="saveNow()">Save</button>
+<button onclick="save()">Save</button>
 <button onclick="toast('Emoji ready')">😊</button>
 <button onclick="toast('Image ready')">➕</button>
-</div>
 </div>
 `;
 }
 
 if(tab==="entries"){
 content.innerHTML=entries.map(e=>`
-<div class="entry">${e.text}<br><small>${e.date}</small></div>
+<div style="padding:10px;margin:10px 0;background:rgba(255,255,255,0.06);border-radius:10px">
+${e.text}<br><small>${e.date}</small>
+</div>
 `).join("");
 }
 
@@ -265,19 +307,23 @@ settings.classList.toggle("open");
 }
 }
 
-/* SAVE */
-function saveNow(){
+/* ===== SAVE ===== */
+function save(){
 let t=txt.value;
-save(t);
-toast("Saved");
+entries.push({text:t,date:new Date().toLocaleString()});
 
 let bg=moodToBg(t);
 if(bg) setBg(bg);
 
+toast("Saved");
 show("entries");
 }
 
-/* SETTINGS TOGGLES */
+/* ===== SETTINGS ===== */
+function toggleSettings(){
+settings.classList.toggle("open");
+}
+
 function toggleMood(){
 moodBG=!moodBG;
 toast("Mood BG toggled");

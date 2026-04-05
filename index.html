@@ -1,253 +1,357 @@
 <script>
 
-/* ===============================
-   DIARY OS v7 CORE ENGINE
-================================ */
+document.addEventListener("DOMContentLoaded", () => {
 
-document.addEventListener("DOMContentLoaded",()=>{
+/* =========================
+   SAFE INIT GUARD
+========================= */
 
-/* ===== WALLPAPERS ===== */
-const wallpapers=[
-"https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-"https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
-];
-
-let wallpaperOn=true;
-
-/* LIVE ENGINE */
-function setWallpaper(){
-if(!wallpaperOn) return;
-
-let a=bg1;
-let b=bg2;
-
-b.style.backgroundImage=`url(${wallpapers[Math.floor(Math.random()*wallpapers.length)]})`;
-b.style.opacity=1;
-a.style.opacity=0;
-
-setTimeout(()=>{
-a.style.backgroundImage=b.style.backgroundImage;
-a.style.opacity=1;
-b.style.opacity=0;
-},800);
+function safe(fn){
+try { fn(); } catch(e){ console.log("DiaryOS error:", e); }
 }
 
-setWallpaper();
-setInterval(setWallpaper,10000);
+/* =========================
+   ELEMENT CHECK
+========================= */
 
-/* ===== WINDOW SYSTEM ===== */
-let z=10;
+const bg1 = window.bg1 || document.getElementById("bg1");
+const bg2 = window.bg2 || document.getElementById("bg2");
 
-window.win=function(title,html){
-let w=document.createElement("div");
-w.className="window";
-w.style.top="120px";
-w.style.left="120px";
-w.style.zIndex=z++;
+/* =========================
+   WAIT FOR DB READY
+========================= */
 
-w.innerHTML=`
-<div class="titlebar">
+let dbReady = false;
+let dbQueue = [];
+
+function waitDB(fn){
+if(dbReady) fn();
+else dbQueue.push(fn);
+}
+
+/* =========================
+   DB INIT (SAFE)
+========================= */
+
+let db;
+let req = indexedDB.open("DiaryOS", 4);
+
+req.onupgradeneeded = e => {
+db = e.target.result;
+if (!db.objectStoreNames.contains("diaries")) {
+let store = db.createObjectStore("diaries", { keyPath: "id", autoIncrement: true });
+store.createIndex("date", "date");
+}
+};
+
+req.onsuccess = e => {
+db = e.target.result;
+dbReady = true;
+
+dbQueue.forEach(fn => fn());
+dbQueue = [];
+};
+
+/* =========================
+   WINDOW SYSTEM (SAFE)
+========================= */
+
+let z = 10;
+
+window.win = function(title, content){
+
+safe(() => {
+let w = document.createElement("div");
+w.className = "win";
+w.style.cssText = "position:absolute;top:120px;left:120px;z-index:"+z++;
+
+w.innerHTML = `
+<div class="bar">
 <span>${title}</span>
-<span onclick="this.parentNode.parentNode.remove()">✖</span>
+<span onclick="this.closest('.win').remove()">✕</span>
 </div>
-<div class="content">${html}</div>
+<div class="body">${content}</div>
 `;
 
 document.body.appendChild(w);
-
-/* DRAG */
-let drag=false,ox,oy;
-
-w.querySelector(".titlebar").onmousedown=e=>{
-drag=true;
-ox=e.clientX-w.offsetLeft;
-oy=e.clientY-w.offsetTop;
-};
-
-document.onmousemove=e=>{
-if(drag){
-w.style.left=(e.clientX-ox)+"px";
-w.style.top=(e.clientY-oy)+"px";
-}
-};
-
-document.onmouseup=()=>drag=false;
-
-/* SNAP LAYOUTS */
-w.onmouseup=()=>{
-if(w.offsetLeft<20) w.style.left="0px";
-if(w.offsetLeft>window.innerWidth-350) w.style.left=(window.innerWidth-350)+"px";
-if(w.offsetTop<20){
-w.style.top="0px";
-w.style.width="100%";
-w.style.height="100%";
-}
-};
-
 return w;
+});
+
 };
 
-/* ===== ENCRYPTION (REAL AES-GCM) ===== */
+/* =========================
+   ENCRYPTION SAFE (NO CRASH)
+========================= */
+
+const enc = new TextEncoder();
+const dec = new TextDecoder();
+
 async function getKey(){
-return crypto.subtle.importKey(
+let base = await crypto.subtle.importKey(
 "raw",
-new TextEncoder().encode("diary-secret-key-1234"),
-{ name:"PBKDF2" },
+enc.encode("1234"),
+"PBKDF2",
 false,
 ["deriveKey"]
 );
+
+return crypto.subtle.deriveKey(
+{
+name:"PBKDF2",
+salt:enc.encode("diary-salt"),
+iterations:100000,
+hash:"SHA-256"
+},
+base,
+{ name:"AES-GCM", length:256 },
+false,
+["encrypt","decrypt"]
+);
 }
 
-/* simplified AES wrapper */
-function enc(text){
-return btoa(unescape(encodeURIComponent(text)));
+async function encrypt(text){
+let key = await getKey();
+let iv = crypto.getRandomValues(new Uint8Array(12));
+
+let data = await crypto.subtle.encrypt(
+{ name:"AES-GCM", iv },
+key,
+enc.encode(text)
+);
+
+return { iv:[...iv], data:[...new Uint8Array(data)] };
 }
-function dec(text){
-return decodeURIComponent(escape(atob(text)));
+
+async function decrypt(obj){
+let key = await getKey();
+
+let iv = new Uint8Array(obj.iv);
+let data = new Uint8Array(obj.data);
+
+let res = await crypto.subtle.decrypt(
+{ name:"AES-GCM", iv },
+key,
+data
+);
+
+return dec.decode(res);
 }
 
-/* ===== DATABASE ===== */
-let db;
-let req=indexedDB.open("DiaryOS",2);
+/* =========================
+   SAFE SAVE
+========================= */
 
-req.onupgradeneeded=e=>{
-db=e.target.result;
-if(!db.objectStoreNames.contains("diaries")){
-db.createObjectStore("diaries",{keyPath:"id",autoIncrement:true});
-}
-};
+window.saveDiary = function(text, images){
 
-req.onsuccess=e=>db=e.target.result;
+waitDB(async () => {
+let encrypted = await encrypt(text);
 
-/* SAVE DIARY */
-window.saveDiary=function(data){
-let tx=db.transaction("diaries","readwrite");
+let tx = db.transaction("diaries","readwrite");
 tx.objectStore("diaries").add({
-text:enc(data.text),
-images:data.images,
-date:new Date().toISOString()
+text:encrypted,
+images:images||[],
+date:Date.now()
+});
+
 });
 };
 
-/* ===== DIARY APP ===== */
-window.newDiary=function(){
+/* =========================
+   NEW DIARY (SAFE)
+========================= */
 
-win("New Diary",`
-<textarea id="t"></textarea>
+window.newDiary = function(){
 
-<button onclick="saveDiary({
-text:t.value,
-images:currentImages
-})">💾 Save</button>
+waitDB(() => {
 
-<button onclick="toggleEmoji(t)">😊 Emoji</button>
-<input type="file" multiple onchange="addImages(this.files,t)">
+win("New Diary", `
+<textarea id="t" style="width:100%;height:200px"></textarea>
+
+<button onclick="saveDiary(t.value,currentImgs)">💾 Save</button>
+<button onclick="emoji(t)">😊 Emoji</button>
+<button onclick="addImg()">➕ Image</button>
+
+<div id="p"></div>
 `);
 
-window.currentImages=[];
-};
+window.currentImgs=[];
 
-/* IMAGE UPLOAD */
-window.addImages=function(files,box){
-for(let f of files){
+window.addImg=function(){
+let i=document.createElement("input");
+i.type="file";
+
+i.onchange=e=>{
+for(let f of e.target.files){
 let url=URL.createObjectURL(f);
-currentImages.push(url);
-box.value+="\n[img:"+url+"]";
+currentImgs.push(url);
+document.getElementById("p").innerHTML += `<img src="${url}" width="80">`;
 }
 };
 
-/* ===== PREVIOUS DIARIES (REAL LOAD) ===== */
-window.openPrev=function(){
-let tx=db.transaction("diaries","readonly");
-let store=tx.objectStore("diaries");
+i.click();
+};
 
-let html="<h3>Saved Diaries</h3>";
+});
 
-store.openCursor().onsuccess=e=>{
-let cursor=e.target.result;
-if(cursor){
-html+=`
-<div style="margin:5px;padding:5px;border:1px solid #444">
-${dec(cursor.value.text).slice(0,30)}...
-</div>`;
-cursor.continue();
-}else{
-win("Previous Diaries",html);
+};
+
+/* =========================
+   PREVIOUS DIARIES (SAFE)
+========================= */
+
+window.openPrevious = function(){
+
+waitDB(() => {
+
+let tx = db.transaction("diaries","readonly");
+let store = tx.objectStore("diaries");
+
+let html = "<h3>Previous Diaries</h3>";
+
+store.openCursor().onsuccess = async e => {
+let c = e.target.result;
+
+if(c){
+let text = await decrypt(c.value.text);
+
+html += `
+<div onclick="viewDiary(${c.key})"
+style="padding:6px;border:1px solid #444;margin:5px;cursor:pointer">
+${text.slice(0,40)}...
+</div>
+`;
+
+c.continue();
+} else {
+win("Previous Diaries", html);
 }
 };
+
+});
+
 };
 
-/* ===== SEARCH ===== */
-window.openSearch=function(){
-win("Search",`
-<input id="q" placeholder="search diaries">
-<button onclick="search(q.value)">Go</button>
+/* VIEW SAFE */
+window.viewDiary = function(id){
+
+waitDB(() => {
+
+let tx = db.transaction("diaries","readonly");
+let store = tx.objectStore("diaries");
+
+let req = store.get(id);
+
+req.onsuccess = async () => {
+let data = req.result;
+let text = await decrypt(data.text);
+
+win("Diary View", `
+<p>${text}</p>
+${(data.images||[]).map(i=>`<img src="${i}" width="120">`).join("")}
 `);
 };
 
-window.search=function(q){
-let tx=db.transaction("diaries","readonly");
-let store=tx.objectStore("diaries");
+});
 
-store.openCursor().onsuccess=e=>{
+};
+
+/* =========================
+   SEARCH + CALENDAR SAFE
+========================= */
+
+window.openSearchCalendar = function(){
+
+waitDB(() => {
+
+win("Search + Calendar", `
+<input id="q" style="width:100%" placeholder="search or date">
+<button onclick="run(q.value)">Search</button>
+<div id="r"></div>
+`);
+
+window.run = function(q){
+
+let tx = db.transaction("diaries","readonly");
+let store = tx.objectStore("diaries");
+
+let out=document.getElementById("r");
+out.innerHTML="";
+
+store.openCursor().onsuccess = async e => {
 let c=e.target.result;
+
 if(c){
-if(dec(c.value.text).includes(q)){
-alert("Found: "+dec(c.value.text).slice(0,40));
+let text=await decrypt(c.value.text);
+let date=new Date(c.value.date).toDateString();
+
+if(text.toLowerCase().includes(q.toLowerCase()) || date.includes(q)){
+out.innerHTML+=`
+<div onclick="viewDiary(${c.key})"
+style="margin:5px;padding:5px;border:1px solid #555">
+📅 ${date}<br>${text.slice(0,50)}
+</div>`;
 }
+
 c.continue();
 }
 };
+
 };
 
-/* ===== CALENDAR ===== */
-window.openCalendar=function(){
-win("Calendar","<p>Diary timeline view ready</p>");
+});
+
 };
 
-/* ===== EMOJI ===== */
-const emojis=["😀","😂","😍","😭","😡","🔥","❤️","🎉","👍"];
+/* =========================
+   EMOJI SAFE
+========================= */
 
-window.toggleEmoji=function(target){
-let panel=document.getElementById("emojiPanel");
-if(!panel){
-panel=document.createElement("div");
-panel.id="emojiPanel";
-document.body.appendChild(panel);
+const emojis=["😀","😂","😍","😭","🔥","❤️","👍"];
+
+window.emoji=function(t){
+
+let p=document.getElementById("e");
+
+if(!p){
+p=document.createElement("div");
+p.id="e";
+document.body.appendChild(p);
 }
 
-panel.style.display=panel.style.display==="grid"?"none":"grid";
-panel.style.gridTemplateColumns="repeat(5,1fr)";
-panel.style.position="fixed";
-panel.style.bottom="60px";
-panel.style.right="10px";
-panel.style.background="rgba(0,0,0,0.7)";
-panel.style.padding="10px";
+p.style.cssText="position:fixed;bottom:50px;right:10px;background:#0008;padding:10px";
 
-panel.innerHTML="";
+p.innerHTML="";
 
 emojis.forEach(e=>{
 let s=document.createElement("span");
 s.innerText=e;
 s.style.cursor="pointer";
-s.onclick=()=>target.value+=e;
-panel.appendChild(s);
+s.onclick=()=>t.value+=e;
+p.appendChild(s);
 });
+
 };
 
-/* ===== SETTINGS ===== */
-window.toggleSettings=function(){
-alert("Settings working: wallpaper + reset + future upgrades ready");
-};
+/* =========================
+   SETTINGS SAFE (NO CRASH)
+========================= */
+
+window.openSettings=function(){
+
+win("Settings", `
+<button onclick="toggleWallpaper()">Toggle Wallpaper</button>
+<button onclick="clearData()">Reset Data</button>
+`);
 
 window.toggleWallpaper=function(){
-wallpaperOn=!wallpaperOn;
+window.wallpaperOn = !window.wallpaperOn;
 };
 
 window.clearData=function(){
 indexedDB.deleteDatabase("DiaryOS");
-alert("All diaries cleared");
+win("Settings","<p>Reset Done</p>");
+};
+
 };
 
 });

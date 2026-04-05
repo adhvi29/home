@@ -3,32 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diary OS Stable</title>
+<title>Diary OS Ultimate</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI}
 html,body{height:100%;overflow:hidden;background:#000;color:#fff}
 
-/* ===== BACKGROUND ===== */
+/* ================= BACKGROUND (FIXED CORE) ================= */
 .bg{
-position:fixed;inset:0;
+position:fixed;
+inset:0;
 background-size:cover;
 background-position:center;
-transition:opacity 1.2s ease;
-z-index:-3;
+transition:opacity 1.5s ease;
+z-index:-10;
 }
 #bg1{opacity:1}
 #bg2{opacity:0}
 
-/* dark overlay */
+/* overlay */
 .overlay{
-position:fixed;inset:0;
+position:fixed;
+inset:0;
 background:rgba(0,0,0,0.35);
 backdrop-filter:blur(18px);
 z-index:-1;
 }
 
-/* ===== LOCKSCREEN ===== */
+/* ================= TOOLTIP SYSTEM ================= */
+.tooltip{
+position:absolute;
+background:rgba(0,0,0,0.85);
+color:white;
+padding:6px 10px;
+border-radius:8px;
+font-size:12px;
+pointer-events:none;
+opacity:0;
+transition:0.2s;
+z-index:99999;
+}
+
+/* ================= LOCKSCREEN ================= */
 #lockscreen{
 position:fixed;
 inset:0;
@@ -36,14 +52,13 @@ display:flex;
 flex-direction:column;
 justify-content:center;
 align-items:center;
-gap:20px;
+gap:15px;
 z-index:1000;
 }
 
-#time{font-size:60px;font-weight:300}
+#time{font-size:65px;font-weight:300}
 #date{opacity:0.8}
 
-/* login box */
 #loginBox{
 display:flex;
 gap:8px;
@@ -62,39 +77,95 @@ color:white;
 width:180px;
 }
 
-/* ===== APP ===== */
+/* ================= APP ================= */
 #app{
 display:none;
 height:100%;
 flex-direction:column;
-z-index:10;
 position:relative;
+z-index:10;
 }
 
-/* TOPBAR */
-#topbar{
-display:flex;
-justify-content:space-between;
-padding:10px;
-background:rgba(0,0,0,0.5);
+/* ================= TASKBAR ================= */
+#taskbar{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+height:60px;
+background:rgba(20,20,20,0.6);
 backdrop-filter:blur(20px);
+display:flex;
+justify-content:center;
+align-items:center;
+gap:18px;
 z-index:20;
 }
 
-.iconBtn{cursor:pointer;opacity:0.8;margin:0 6px}
-.iconBtn:hover{opacity:1}
+.icon{
+width:42px;
+height:42px;
+display:flex;
+justify-content:center;
+align-items:center;
+border-radius:10px;
+cursor:pointer;
+background:rgba(255,255,255,0.05);
+position:relative;
+}
+.icon:hover{background:rgba(255,255,255,0.15)}
 
-/* CONTENT */
-#content{
-flex:1;
-overflow:auto;
-padding:15px;
-z-index:10;
+/* ================= START MENU ================= */
+#startMenu{
+position:fixed;
+bottom:70px;
+left:50%;
+transform:translateX(-50%);
+width:300px;
+background:rgba(25,25,25,0.85);
+backdrop-filter:blur(25px);
+border-radius:14px;
+padding:12px;
+display:none;
+flex-direction:column;
+gap:8px;
+z-index:30;
 }
 
-/* ===== WRITE BOX ===== */
-.writeBox{
+/* ================= SETTINGS ================= */
+#settings{
+position:fixed;
+right:-350px;
+top:0;
+width:350px;
+height:100%;
+background:rgba(0,0,0,0.75);
+backdrop-filter:blur(20px);
+padding:15px;
+transition:0.4s;
+z-index:50;
+}
+#settings.open{right:0}
+
+/* ================= WRITE MODAL ================= */
+#writeModal{
+position:fixed;
+inset:0;
 display:none;
+justify-content:center;
+align-items:center;
+background:rgba(0,0,0,0.4);
+backdrop-filter:blur(12px);
+z-index:40;
+}
+
+#writeBox{
+width:60%;
+max-width:700px;
+background:rgba(255,255,255,0.08);
+padding:15px;
+border-radius:15px;
+display:flex;
 flex-direction:column;
 gap:10px;
 }
@@ -107,15 +178,16 @@ border-radius:12px;
 padding:10px;
 background:rgba(255,255,255,0.08);
 color:white;
+outline:none;
 }
 
-/* TOOLBAR (NEXT TO TEXTBOX) */
+/* toolbar */
 .toolbar{
 display:flex;
 gap:8px;
 }
 
-.toolbar button{
+.btn{
 padding:8px;
 border:none;
 border-radius:10px;
@@ -124,33 +196,17 @@ color:white;
 cursor:pointer;
 }
 
-/* ===== SETTINGS (FIXED CLICK ISSUE) ===== */
-#settings{
-position:fixed;
-right:-340px;
-top:0;
-width:340px;
-height:100%;
-background:rgba(0,0,0,0.75);
-backdrop-filter:blur(20px);
-padding:15px;
-transition:0.4s;
-z-index:9999;
-pointer-events:auto;
-}
-#settings.open{right:0}
-
-/* toast */
+/* ================= TOAST ================= */
 #toast{
 position:fixed;
-bottom:20px;
+bottom:80px;
 left:50%;
 transform:translateX(-50%);
-background:rgba(0,0,0,0.7);
+background:rgba(0,0,0,0.75);
 padding:10px 15px;
 border-radius:10px;
 opacity:0;
-transition:0.4s;
+transition:0.3s;
 pointer-events:none;
 z-index:9999;
 }
@@ -164,6 +220,9 @@ z-index:9999;
 <div id="bg2" class="bg"></div>
 <div class="overlay"></div>
 
+<!-- TOOLTIP -->
+<div id="tooltip" class="tooltip"></div>
+
 <!-- LOCKSCREEN -->
 <div id="lockscreen">
 <div id="time"></div>
@@ -171,6 +230,7 @@ z-index:9999;
 
 <div id="loginBox">
 <input id="pass" type="password" placeholder="Password">
+<span class="btn" onclick="togglePass()">👁</span>
 <button onclick="unlock()">Enter</button>
 </div>
 </div>
@@ -178,24 +238,48 @@ z-index:9999;
 <!-- APP -->
 <div id="app">
 
-<div id="topbar">
-<div>📔 Diary OS</div>
-<div>
-<span class="iconBtn" onclick="openWrite()">✍️</span>
-<span class="iconBtn" onclick="toggleSettings()">⚙️</span>
-</div>
+<!-- START MENU -->
+<div id="startMenu">
+<button onclick="openWrite()">📝 Write</button>
+<button onclick="toggleSettings()">⚙️ Settings</button>
+<button onclick="toast('System running')">ℹ️ Info</button>
 </div>
 
-<div id="content"></div>
+<!-- TASKBAR -->
+<div id="taskbar">
 
+<div class="icon" onmouseenter="tip(event,'Start Menu')" onmouseleave="hideTip()" onclick="toggleStart()">⊞</div>
+
+<div class="icon" onmouseenter="tip(event,'Write Diary')" onmouseleave="hideTip()" onclick="openWrite()">✍️</div>
+
+<div class="icon" onmouseenter="tip(event,'Settings')" onmouseleave="hideTip()" onclick="toggleSettings()">⚙️</div>
+
+</div>
+
+</div>
+
+<!-- WRITE MODAL -->
+<div id="writeModal">
+<div id="writeBox">
+
+<textarea id="txt"></textarea>
+
+<div class="toolbar">
+<button class="btn" onmouseenter="tip(event,'Save Entry')" onmouseleave="hideTip()" onclick="save()">💾</button>
+<button class="btn" onmouseenter="tip(event,'Insert Emoji')" onmouseleave="hideTip()" onclick="toast('Emoji Picker')">😊</button>
+<button class="btn" onmouseenter="tip(event,'Upload File')" onmouseleave="hideTip()" onclick="toast('File Picker')">➕</button>
+<button class="btn" onmouseenter="tip(event,'Close Editor')" onmouseleave="hideTip()" onclick="closeWrite()">❌</button>
+</div>
+
+</div>
 </div>
 
 <!-- SETTINGS -->
 <div id="settings">
 <h3>Settings</h3>
-<button onclick="toggleAuto()">Auto Background</button>
-<button onclick="toggleMood()">Mood Background</button>
-<button onclick="changeBg()">Change BG Now</button>
+<button onclick="toast('Mood BG toggled')">Mood BG</button>
+<button onclick="toast('Auto BG toggled')">Auto BG</button>
+<button onclick="closeSettings()">❌ Close</button>
 </div>
 
 <!-- TOAST -->
@@ -203,15 +287,13 @@ z-index:9999;
 
 <script>
 
-/* ===== CORE ===== */
+/* ================= CORE ================= */
 const PASSWORD="adhvik_diary";
 
-/* STATE */
-let autoBg=true;
-let moodBg=true;
-let writeOpen=false;
+/* ================= STATE ================= */
+let cur=1;
 
-/* ===== CLOCK ===== */
+/* ================= CLOCK ================= */
 function updateClock(){
 let d=new Date();
 time.innerText=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -220,16 +302,38 @@ date.innerText=d.toDateString();
 setInterval(updateClock,1000);
 updateClock();
 
-/* ===== TOAST ===== */
+/* ================= TOOLTIP ================= */
+function tip(e,text){
+tooltip.innerText=text;
+tooltip.style.opacity=1;
+tooltip.style.left=e.pageX+10+"px";
+tooltip.style.top=e.pageY+10+"px";
+}
+function hideTip(){
+tooltip.style.opacity=0;
+}
+
+/* ================= TOAST ================= */
 function toast(msg){
 toast.innerText=msg;
 toast.style.opacity=1;
 setTimeout(()=>toast.style.opacity=0,2000);
 }
 
-/* ===== BACKGROUND SYSTEM (FIXED) ===== */
-let cur=1;
+/* ================= PASSWORD ================= */
+function togglePass(){
+pass.type = pass.type==="password"?"text":"password";
+}
 
+function unlock(){
+if(pass.value===PASSWORD){
+lockscreen.style.display="none";
+app.style.display="flex";
+toast("Welcome");
+}else toast("Wrong password");
+}
+
+/* ================= BACKGROUND FIXED ================= */
 function setBg(url){
 let next=cur===1?bg2:bg1;
 let prev=cur===1?bg1:bg2;
@@ -241,84 +345,50 @@ prev.style.opacity=0;
 cur=cur===1?2:1;
 }
 
-/* STARTUP CHANGING BACKGROUND */
-let startupImgs=[
-"https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-"https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d"
-];
-
+/* startup changing BG */
 setInterval(()=>{
-if(!autoBg) return;
-setBg(startupImgs[Math.floor(Math.random()*startupImgs.length)]);
-},7000);
+setBg(`https://images.unsplash.com/photo-1501785888041-af3ef285b470?${Math.random()}`);
+},8000);
 
-/* ===== UNLOCK ===== */
-function unlock(){
-if(pass.value===PASSWORD){
-lockscreen.style.display="none";
-app.style.display="flex";
-toast("Unlocked");
-}else{
-toast("Wrong password");
-}
+/* ================= START MENU ================= */
+let startOpen=false;
+
+function toggleStart(){
+startOpen=!startOpen;
+startMenu.style.display=startOpen?"flex":"none";
 }
 
-/* ===== WRITE BOX (CLOSE AFTER USE) ===== */
+/* ================= SETTINGS ================= */
+function toggleSettings(){
+settings.classList.toggle("open");
+}
+
+function closeSettings(){
+settings.classList.remove("open");
+}
+
+/* ================= WRITE MODAL ================= */
+let writeOpen=false;
+
 function openWrite(){
-if(writeOpen){
-toast("Close current note first");
-return;
-}
-
 writeOpen=true;
-
-content.innerHTML=`
-<div class="writeBox">
-<textarea id="txt"></textarea>
-
-<div class="toolbar">
-<button onclick="save()">Save</button>
-<button onclick="toast('Emoji picker')">😊</button>
-<button onclick="toast('File upload')">➕</button>
-<button onclick="closeWrite()">Close</button>
-</div>
-</div>
-`;
+writeModal.style.display="flex";
 }
 
 function closeWrite(){
 writeOpen=false;
-content.innerHTML="";
-toast("Closed editor");
+writeModal.style.display="none";
+txt.value="";
 }
 
-/* SAVE */
 function save(){
-setBg("https://images.unsplash.com/photo-1519681393784-d120267933ba");
-closeWrite();
 toast("Saved");
+closeWrite();
 }
 
-/* ===== SETTINGS ===== */
-function toggleSettings(){
-settings.classList.toggle("open");
-toast("Settings toggled");
-}
-
-function toggleAuto(){
-autoBg=!autoBg;
-toast("Auto BG: "+autoBg);
-}
-
-function toggleMood(){
-moodBg=!moodBg;
-toast("Mood BG: "+moodBg);
-}
-
-function changeBg(){
-setBg("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee");
-toast("Background changed");
+/* ================= SAFETY ================= */
+window.onclick=function(e){
+if(e.target===writeModal) closeWrite();
 }
 
 </script>

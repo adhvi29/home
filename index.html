@@ -3,35 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diary OS</title>
+<title>Diary OS Win11</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI}
 html,body{height:100%;overflow:hidden;background:#000;color:#fff}
 
-/* ===== BACKGROUND ENGINE (REWRITTEN) ===== */
+/* ===== BACKGROUND ===== */
 .bg{
-position:fixed;
-inset:0;
+position:fixed;inset:0;
 background-size:cover;
 background-position:center;
-transition:opacity 1s ease, transform 20s linear;
+transition:opacity 1.2s ease;
 z-index:-3;
 }
-
 #bg1{opacity:1}
 #bg2{opacity:0}
 
-/* blur overlay like Windows */
+/* blur overlay */
 .overlay{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.35);
-backdrop-filter:blur(18px);
+position:fixed;inset:0;
+background:rgba(0,0,0,0.25);
+backdrop-filter:blur(20px);
 z-index:-1;
 }
 
-/* ===== LOCKSCREEN (WINDOWS STYLE) ===== */
+/* ===== LOCKSCREEN ===== */
 #lockscreen{
 position:fixed;
 inset:0;
@@ -39,22 +36,13 @@ display:flex;
 flex-direction:column;
 justify-content:center;
 align-items:center;
-text-align:center;
 background:rgba(0,0,0,0.4);
 }
 
-#time{
-font-size:64px;
-font-weight:300;
-}
+#time{font-size:70px;font-weight:300}
+#date{opacity:0.8;margin-bottom:20px}
 
-#date{
-opacity:0.8;
-margin-bottom:30px;
-}
-
-/* password box */
-#loginBox{
+#box{
 display:flex;
 align-items:center;
 gap:8px;
@@ -70,29 +58,63 @@ border:none;
 outline:none;
 color:white;
 width:180px;
-font-size:16px;
-}
-
-#eye{
-cursor:pointer;
-opacity:0.8;
 }
 
 /* ===== APP ===== */
 #app{display:none;height:100%;flex-direction:column}
 
-#topbar{
-display:flex;
-justify-content:space-between;
-padding:10px 14px;
-background:rgba(0,0,0,0.4);
+/* ===== TASKBAR ===== */
+#taskbar{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+height:60px;
+background:rgba(20,20,20,0.6);
 backdrop-filter:blur(20px);
+display:flex;
+justify-content:center;
+align-items:center;
+gap:20px;
+z-index:10;
 }
 
-.tab{margin:0 6px;cursor:pointer;opacity:0.7}
-.tab:hover{opacity:1}
+.icon{
+width:40px;height:40px;
+display:flex;
+justify-content:center;
+align-items:center;
+border-radius:10px;
+cursor:pointer;
+background:rgba(255,255,255,0.05);
+}
 
-#content{flex:1;overflow:auto;padding:15px}
+.icon:hover{background:rgba(255,255,255,0.15)}
+
+/* ===== START MENU ===== */
+#startMenu{
+position:fixed;
+bottom:70px;
+left:50%;
+transform:translateX(-50%);
+width:320px;
+background:rgba(30,30,30,0.8);
+backdrop-filter:blur(25px);
+border-radius:15px;
+padding:15px;
+display:none;
+flex-direction:column;
+gap:10px;
+z-index:20;
+}
+
+/* CONTENT */
+#content{
+flex:1;
+overflow:auto;
+padding:20px;
+margin-bottom:60px;
+}
 
 /* WRITE */
 textarea{
@@ -105,7 +127,6 @@ background:rgba(255,255,255,0.08);
 color:white;
 }
 
-/* TOOLBAR */
 .toolbar{
 display:flex;
 gap:8px;
@@ -124,14 +145,15 @@ cursor:pointer;
 /* SETTINGS */
 #settings{
 position:fixed;
-right:-320px;
+right:-340px;
 top:0;
-width:320px;
+width:340px;
 height:100%;
-background:rgba(0,0,0,0.7);
+background:rgba(0,0,0,0.75);
 backdrop-filter:blur(20px);
 padding:15px;
 transition:0.4s;
+z-index:30;
 }
 #settings.open{right:0}
 
@@ -148,7 +170,7 @@ margin:5px 0;
 /* TOAST */
 #toast{
 position:fixed;
-bottom:20px;
+bottom:80px;
 left:50%;
 transform:translateX(-50%);
 background:rgba(0,0,0,0.7);
@@ -173,9 +195,8 @@ pointer-events:none;
 <div id="time"></div>
 <div id="date"></div>
 
-<div id="loginBox">
+<div id="box">
 <input id="pass" type="password" placeholder="Password">
-<span id="eye" onclick="toggleEye()">👁️</span>
 <button onclick="unlock()">Enter</button>
 </div>
 </div>
@@ -183,40 +204,59 @@ pointer-events:none;
 <!-- APP -->
 <div id="app">
 
-<div id="topbar">
-<div>📔 Diary OS</div>
-<div>
-<span class="tab" onclick="show('write')">✍️</span>
-<span class="tab" onclick="show('entries')">📜</span>
-<span class="tab" onclick="toggleSettings()">⚙️</span>
-</div>
+<!-- START MENU -->
+<div id="startMenu">
+<button onclick="show('write')">📝 Write</button>
+<button onclick="show('entries')">📜 Entries</button>
+<button onclick="toggleSettings()">⚙️ Settings</button>
 </div>
 
+<!-- CONTENT -->
 <div id="content"></div>
+
+<!-- TASKBAR -->
+<div id="taskbar">
+<div class="icon" onclick="toggleStart()">⊞</div>
+<div class="icon" onclick="show('write')">✍️</div>
+<div class="icon" onclick="show('entries')">📜</div>
+<div class="icon" onclick="toggleSettings()">⚙️</div>
+</div>
+
 </div>
 
 <!-- SETTINGS -->
 <div id="settings">
 <h3>Settings</h3>
-<button onclick="toggleMood()">Mood BG</button>
-<button onclick="toggleRandom()">Random BG</button>
-<button onclick="toggleAuto()">Auto BG</button>
+<button onclick="toggleMood()">Mood Wallpaper</button>
+<button onclick="toggleAuto()">Auto Wallpaper</button>
+<button onclick="toggleSound()">Sound FX</button>
 </div>
 
+<!-- TOAST -->
 <div id="toast"></div>
 
 <script>
 
-/* ===== PASSWORD (FIXED ALWAYS) ===== */
+/* ===== CORE ===== */
 const PASSWORD="adhvik_diary";
-
-/* ===== STATE ===== */
 let entries=[];
-let moodBG=true;
-let randomBG=true;
-let autoBG=true;
 
-/* ===== CLOCK ===== */
+/* SETTINGS */
+let mood=true;
+let auto=true;
+let sound=true;
+
+/* AUDIO ENGINE */
+const clickSound=new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8b0a5d6b3.mp3?filename=click-124467.mp3");
+const unlockSound=new Audio("https://cdn.pixabay.com/download/audio/2022/03/16/audio_0f5b6d1b6f.mp3?filename=interface-124464.mp3");
+
+function play(s){
+if(!sound) return;
+s.currentTime=0;
+s.play();
+}
+
+/* CLOCK */
 function updateClock(){
 let d=new Date();
 time.innerText=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -225,67 +265,75 @@ date.innerText=d.toDateString();
 setInterval(updateClock,1000);
 updateClock();
 
-/* ===== EYE BUTTON ===== */
-function toggleEye(){
-pass.type = pass.type==="password" ? "text":"password";
-}
-
-/* ===== TOAST (NO ALERT EVER) ===== */
+/* TOAST */
 function toast(msg){
 toastBox.innerText=msg;
 toastBox.style.opacity=1;
 setTimeout(()=>toastBox.style.opacity=0,2000);
 }
 
-/* ===== UNLOCK ===== */
+/* UNLOCK */
 function unlock(){
 if(pass.value===PASSWORD){
+play(unlockSound);
 lockscreen.style.display="none";
 app.style.display="flex";
 show("write");
-toast("Unlocked");
+toast("Welcome");
 }else{
 toast("Wrong password");
 }
 }
 
-/* ===== BACKGROUND ENGINE (FIXED CORE) ===== */
-let current=1;
+/* START MENU */
+function toggleStart(){
+play(clickSound);
+startMenu.style.display = startMenu.style.display==="flex"?"none":"flex";
+}
 
+/* SETTINGS */
+function toggleSettings(){
+play(clickSound);
+settings.classList.toggle("open");
+}
+
+/* AI WALLPAPER (REAL LOGIC) */
+function moodBg(text){
+text=text.toLowerCase();
+
+if(text.includes("happy")) return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e";
+if(text.includes("sad")) return "https://images.unsplash.com/photo-1501696461415-6bd6660c6742";
+if(text.includes("stress")) return "https://images.unsplash.com/photo-1520975928318-7a1c5d9c3c8d";
+return "https://images.unsplash.com/photo-1501785888041-af3ef285b470";
+}
+
+/* BG SWITCH */
+let cur=1;
 function setBg(url){
-let next=current===1?bg2:bg1;
-let prev=current===1?bg1:bg2;
+let next=cur===1?bg2:bg1;
+let prev=cur===1?bg1:bg2;
 
 next.style.backgroundImage=`url(${url})`;
 next.style.opacity=1;
 prev.style.opacity=0;
 
-current=current===1?2:1;
+cur=cur===1?2:1;
 }
 
-/* AUTO BG */
+/* AUTO WALLPAPER */
 setInterval(()=>{
-if(!autoBG) return;
-if(randomBG){
-setBg(`https://picsum.photos/1920/1080?random=${Math.random()}`);
-}
-},8000);
+if(!auto) return;
+setBg("https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d");
+},12000);
 
-/* MOOD BG */
-function moodToBg(text){
-if(!moodBG) return null;
-if(/happy/i.test(text)) return "https://picsum.photos/1920/1080?happy";
-if(/sad/i.test(text)) return "https://picsum.photos/1920/1080?sad";
-return null;
-}
-
-/* ===== UI ===== */
+/* UI */
 function show(tab){
+
+play(clickSound);
 
 if(tab==="write"){
 content.innerHTML=`
 <textarea id="txt"></textarea>
-
 <div class="toolbar">
 <button onclick="save()">Save</button>
 <button onclick="toast('Emoji ready')">😊</button>
@@ -301,43 +349,25 @@ ${e.text}<br><small>${e.date}</small>
 </div>
 `).join("");
 }
-
-if(tab==="settings"){
-settings.classList.toggle("open");
-}
 }
 
-/* ===== SAVE ===== */
+/* SAVE */
 function save(){
 let t=txt.value;
 entries.push({text:t,date:new Date().toLocaleString()});
 
-let bg=moodToBg(t);
-if(bg) setBg(bg);
+if(mood){
+setBg(moodBg(t));
+}
 
 toast("Saved");
 show("entries");
 }
 
-/* ===== SETTINGS ===== */
-function toggleSettings(){
-settings.classList.toggle("open");
-}
-
-function toggleMood(){
-moodBG=!moodBG;
-toast("Mood BG toggled");
-}
-
-function toggleRandom(){
-randomBG=!randomBG;
-toast("Random BG toggled");
-}
-
-function toggleAuto(){
-autoBG=!autoBG;
-toast("Auto BG toggled");
-}
+/* SETTINGS */
+function toggleMood(){mood=!mood;toast("Mood wallpaper toggled")}
+function toggleAuto(){auto=!auto;toast("Auto wallpaper toggled")}
+function toggleSound(){sound=!sound;toast("Sound toggled")}
 
 </script>
 

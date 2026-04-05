@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diaries PRO MAX</title>
 
-<!-- PWA -->
 <link rel="manifest" id="manifest">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,system-ui}
 html,body{height:100%;overflow:hidden;background:#000;color:#fff}
 
-/* ===== BACKGROUNDS ===== */
+/* ===== BACKGROUND ===== */
 #bg,#bg2{
 position:fixed;inset:0;
 background-size:cover;
@@ -28,13 +27,13 @@ background:radial-gradient(circle at top,rgba(255,255,255,0.08),rgba(0,0,0,0.85)
 z-index:-1;
 }
 
-/* ===== WINDOWS LOGIN ===== */
+/* ===== LOGIN ===== */
 #winLogin{
 position:fixed;inset:0;
 display:flex;
 justify-content:center;
 align-items:center;
-background:rgba(0,0,0,0.7);
+background:rgba(0,0,0,0.75);
 backdrop-filter:blur(25px);
 z-index:9999;
 transition:1s;
@@ -46,7 +45,7 @@ border-radius:18px;
 background:rgba(255,255,255,0.06);
 backdrop-filter:blur(20px);
 text-align:center;
-animation:float 4s ease-in-out infinite;
+animation:float 4s infinite ease-in-out;
 }
 
 @keyframes float{
@@ -68,12 +67,35 @@ backdrop-filter:blur(20px);
 border-bottom:1px solid rgba(255,255,255,0.08);
 }
 
-.tab{cursor:pointer;margin:0 6px;opacity:0.7}
-.tab:hover{opacity:1}
+.tab{
+cursor:pointer;
+margin:0 6px;
+opacity:0.7;
+position:relative;
+}
 
+.tab:hover{
+opacity:1;
+transform:scale(1.15);
+}
+
+/* TOOLTIP */
+.tab:hover::after{
+content:attr(data-tip);
+position:absolute;
+top:40px;
+left:50%;
+transform:translateX(-50%);
+background:rgba(0,0,0,0.8);
+padding:5px 8px;
+border-radius:8px;
+font-size:12px;
+white-space:nowrap;
+}
+
+/* CONTENT */
 #content{flex:1;overflow:auto;padding:18px}
 
-/* ===== UI ELEMENTS ===== */
 .entry{
 background:rgba(255,255,255,0.06);
 padding:14px;
@@ -107,7 +129,6 @@ cursor:pointer;
 }
 .day:hover{background:rgba(255,255,255,0.15)}
 
-/* timeline */
 .timelineItem{
 padding:10px;
 margin:10px 0;
@@ -115,25 +136,47 @@ border-left:2px solid white;
 padding-left:10px;
 }
 
-/* popup */
+/* settings */
+#settings{
+position:fixed;
+right:-320px;
+top:0;
+width:320px;
+height:100%;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(20px);
+transition:0.4s;
+padding:15px;
+}
+#settings.open{right:0}
+
+button{
+padding:10px;
+border:none;
+border-radius:10px;
+background:rgba(255,255,255,0.08);
+color:white;
+cursor:pointer;
+}
+button:hover{background:rgba(255,255,255,0.18)}
+
 #popup{
 position:fixed;
 bottom:20px;
 left:50%;
 transform:translateX(-50%);
-padding:10px 16px;
+padding:10px 15px;
 background:rgba(0,0,0,0.6);
-backdrop-filter:blur(10px);
 border-radius:10px;
 opacity:0;
 transition:0.5s;
 }
+
 </style>
 </head>
 
 <body>
 
-<!-- BACKGROUND -->
 <div id="bg"></div>
 <div id="bg2"></div>
 <div id="overlay"></div>
@@ -152,42 +195,57 @@ transition:0.5s;
 
 <div id="topbar">
 <div>📔 Diaries PRO MAX</div>
+
 <div>
-<span class="tab" onclick="show('write')">✍️</span>
-<span class="tab" onclick="show('entries')">📜</span>
-<span class="tab" onclick="show('search')">🔍</span>
-<span class="tab" onclick="show('calendar')">📅</span>
-<span class="tab" onclick="show('timeline')">⏳</span>
+<span class="tab" data-tip="Write Entry ✍️" onclick="show('write')">✍️</span>
+<span class="tab" data-tip="All Entries 📜" onclick="show('entries')">📜</span>
+<span class="tab" data-tip="Search + Calendar 🔍📅" onclick="show('search')">🔍</span>
+<span class="tab" data-tip="Calendar 📅" onclick="show('calendar')">📅</span>
+<span class="tab" data-tip="Timeline ⏳" onclick="show('timeline')">⏳</span>
+<span class="tab" data-tip="Settings ⚙️" onclick="toggleSettings()">⚙️</span>
 </div>
+
 <button onclick="lock()">🔒</button>
 </div>
 
 <div id="content"></div>
 </div>
 
+<!-- SETTINGS -->
+<div id="settings">
+<h3>Settings</h3>
+
+<button onclick="changePassword()">Change Password</button>
+<button onclick="toggleMoodBG()">Toggle Mood BG</button>
+<button onclick="toggleRandomBG()">Toggle Random BG</button>
+<button onclick="clearEntries()">Clear Entries</button>
+<button onclick="exportData()">Export Data</button>
+</div>
+
 <div id="popup"></div>
 
 <script>
 
-/* ================= PASSWORD ================= */
+/* ===== CORE DATA ===== */
 let password = localStorage.getItem("password") || "adhvik_diary";
 let entries = JSON.parse(localStorage.getItem("entries") || "[]");
 
-/* ================= LOGIN ================= */
+/* ===== FLAGS ===== */
+let moodBG = true;
+let randomBG = true;
+
+/* ===== LOGIN ===== */
 function login(){
 if(pass.value === password){
-winLogin.style.opacity="0";
-setTimeout(()=>{
 winLogin.style.display="none";
 app.style.display="flex";
 show("write");
-},800);
 }else alert("Wrong Password");
 }
 
 function lock(){location.reload()}
 
-/* ================= SAVE ENTRY ================= */
+/* ===== SAVE ===== */
 function save(text){
 entries.push({
 text,
@@ -198,36 +256,36 @@ mood:detectMood(text)
 localStorage.setItem("entries",JSON.stringify(entries));
 }
 
-/* ================= AUTO TAG + MOOD ================= */
+/* ===== TAG + MOOD ===== */
 function autoTag(t){
 let tags=[];
 if(/school|study|exam/i.test(t)) tags.push("study");
-if(/game|ps5|play/i.test(t)) tags.push("gaming");
+if(/game|ps5/i.test(t)) tags.push("gaming");
 if(/sad|cry/i.test(t)) tags.push("sad");
-if(/happy|lol/i.test(t)) tags.push("happy");
+if(/happy/i.test(t)) tags.push("happy");
 return tags;
 }
 
 function detectMood(t){
 if(/sad|cry/i.test(t)) return "sad";
 if(/angry/i.test(t)) return "angry";
-if(/happy|lol/i.test(t)) return "happy";
+if(/happy/i.test(t)) return "happy";
 return "neutral";
 }
 
-/* ================= BACKGROUND ENGINE ================= */
-function bgForMood(m){
-let map={
+/* ===== BACKGROUND ===== */
+function bgMap(m){
+return {
 happy:"https://picsum.photos/1920/1080?happy",
 sad:"https://picsum.photos/1920/1080?sad",
 angry:"https://picsum.photos/1920/1080?fire",
 neutral:"https://picsum.photos/1920/1080?space"
-};
-return map[m]||map.neutral;
+}[m];
 }
 
-function setBg(m){
-let img=bgForMood(m);
+function setBg(mood){
+if(!moodBG) return;
+let img=bgMap(mood||"neutral");
 bg2.style.backgroundImage=`url(${img})`;
 bg2.style.opacity=1;
 bg.style.opacity=0;
@@ -238,8 +296,9 @@ bg2.style.opacity=0;
 },1200);
 }
 
-/* random background rotation */
+/* RANDOM BACKGROUND */
 setInterval(()=>{
+if(!randomBG) return;
 let imgs=[
 "https://picsum.photos/1920/1080?1",
 "https://picsum.photos/1920/1080?2",
@@ -248,12 +307,12 @@ let imgs=[
 bg.style.backgroundImage=`url(${imgs[Math.floor(Math.random()*imgs.length)]})`;
 },10000);
 
-/* ================= UI ================= */
+/* ===== UI ===== */
 function show(tab){
 
 if(tab==="write"){
 content.innerHTML=`
-<textarea id="txt" placeholder="Write something..."></textarea>
+<textarea id="txt"></textarea>
 <button onclick="saveAndRender()">Save</button>`;
 }
 
@@ -267,30 +326,51 @@ ${e.text}<br>
 `).join("");
 }
 
+if(tab==="calendar"){
+let days=30;
+content.innerHTML="<h3>Calendar Search Enabled</h3>"+
+Array.from({length:days}).map((_,i)=>
+`<div class="day" onclick="calendarSearch(${i+1})">${i+1}</div>`
+).join("");
+}
+
 if(tab==="timeline"){
-content.innerHTML=entries.slice().reverse().map(e=>`
+content.innerHTML=[...entries].reverse().map(e=>`
 <div class="timelineItem">
 <b>${e.date}</b><br>${e.text}
 </div>
 `).join("");
 }
 
-if(tab==="calendar"){
-content.innerHTML="<h3>Calendar (existing feature preserved)</h3>";
-}
-
 if(tab==="search"){
-content.innerHTML=`<input oninput="search(this.value)" placeholder="Search..."><div id="res"></div>`;
+content.innerHTML=`
+<input oninput="search(this.value)" placeholder="Search + Date + Calendar">
+<div id="res"></div>
+`;
 }
 }
 
-/* ================= SEARCH ================= */
+/* ===== COMBINED SEARCH ===== */
 function search(q){
-res.innerHTML=entries.filter(e=>e.text.includes(q))
-.map(e=>`<div class="entry">${e.text}</div>`).join("");
+let result=entries.filter(e=>
+e.text.includes(q) ||
+e.date.includes(q)
+);
+
+res.innerHTML=result.map(e=>`
+<div class="entry">${e.text}<br><small>${e.date}</small></div>
+`).join("");
 }
 
-/* ================= SAVE ================= */
+/* calendar → search */
+function calendarSearch(day){
+let result=entries.filter(e=>e.date.includes(day));
+res.innerHTML=result.map(e=>`
+<div class="entry">${e.text}</div>
+`).join("");
+}
+
+/* ===== SAVE ===== */
 function saveAndRender(){
 let text=txt.value;
 save(text);
@@ -298,39 +378,36 @@ setBg(detectMood(text));
 show("entries");
 }
 
-/* ================= POPUP ================= */
-function popup(msg){
-popup.innerText=msg;
-popup.style.opacity=1;
-setTimeout(()=>popup.style.opacity=0,2000);
+/* ===== SETTINGS ===== */
+function toggleSettings(){
+settings.classList.toggle("open");
 }
 
-/* ================= PWA ================= */
-const manifest = {
-name:"Diaries PRO MAX",
-short_name:"Diaries",
-start_url:".",
-display:"standalone",
-background_color:"#000",
-theme_color:"#000"
-};
+function changePassword(){
+let p=prompt("New Password");
+if(p){password=p;localStorage.setItem("password",p);}
+}
 
-const blob=new Blob([JSON.stringify(manifest)],{type:"application/json"});
-document.getElementById("manifest").href=URL.createObjectURL(blob);
+function toggleMoodBG(){moodBG=!moodBG}
+function toggleRandomBG(){randomBG=!randomBG}
 
-/* service worker */
-if("serviceWorker" in navigator){
-const sw = `
-self.addEventListener('install',e=>self.skipWaiting());
-self.addEventListener('fetch',()=>{});
-`;
-navigator.serviceWorker.register(
-URL.createObjectURL(new Blob([sw],{type:"application/javascript"}))
-);
+function clearEntries(){
+if(confirm("Clear all?")){
+entries=[];
+localStorage.setItem("entries","[]");
+}
+}
+
+function exportData(){
+let blob=new Blob([JSON.stringify(entries)],{type:"application/json"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="diary.json";
+a.click();
 }
 
 /* INIT BG */
-bg.style.backgroundImage="url(https://picsum.photos/1920/1080?init)";
+bg.style.backgroundImage="https://picsum.photos/1920/1080?init";
 
 </script>
 

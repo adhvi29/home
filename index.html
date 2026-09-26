@@ -270,6 +270,8 @@ h1,h2,h3{letter-spacing:-.035em;line-height:1.05;font-weight:800}
 .lit-hero{border-radius:34px;height:360px}
 .poem-card{display:block;text-decoration:none;max-width:720px;margin:16px auto 0;background:var(--alt);border-radius:30px;padding:54px 54px 40px;position:relative;transition:transform .5s var(--ease)}
 .poem-card:hover{transform:scale(1.012)}
+.poems{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px;margin-top:16px;align-items:start}
+.poems .poem-card{max-width:none;margin:0}
 .poem-card .qm{position:absolute;top:10px;left:34px;font:500 7rem/1 Newsreader,serif;color:var(--rasp);opacity:.3}
 .poem-card h3{font:italic 500 2.6rem Newsreader,serif;letter-spacing:-.01em}
 .by{color:var(--muted);font-size:.92rem;margin:4px 0 26px}
@@ -648,7 +650,7 @@ body::after{content:"";position:fixed;inset:0;z-index:90;pointer-events:none;opa
         <li class="rv"><span class="when">August</span><h3>Breathing and heartbeat, live</h3><p>RadioBeat read breathing, then a heartbeat, straight from WiFi signals.</p></li>
         <li class="rv"><span class="when">September</span><h3>InnovateX 2.0 Finalist</h3><p>Submitted the final RadioBeat project, and made it to the finals.</p></li>
         <li class="rv"><span class="when">September</span><h3>IQ Lab, Reachy and the Translator</h3><p>A cognitive test battery, a robot study buddy and a live screen translator.</p></li>
-        <li class="rv"><span class="when">2026</span><h3>“Sibling”</h3><p>Wrote the poem that opens my Literary Works.</p></li>
+        <li class="rv"><span class="when">2026</span><h3>“Sibling” and “Mirrored Tree”</h3><p>Two poems, both up on my Literary Works page.</p></li>
         <li class="rv nx"><span class="when">Next</span><h3>Focusing sound</h3><p>Learning the physics of ultrasound, then building a focused ultrasound rig from the signal generator up. <a class="more-link" href="#next">See the plan</a></p></li>
       </ol>
     </div>
@@ -893,6 +895,7 @@ body::after{content:"";position:fixed;inset:0;z-index:90;pointer-events:none;opa
     <div class="page-head"><span class="eyebrow">Literary works</span><h1 class="split h-xl">My writing.</h1><p class="sub">Mostly poems. It's where I put the things that don't fit in a program.</p></div>
     <div class="viz g-lit lit-hero rv" data-viz="literary"></div>
     <h2 class="h-sec center">Poems</h2>
+    <div class="poems">
     <a class="spot poem-card rv" href="#poem-sibling" aria-label="Read the full poem Sibling">
       <span class="qm">“</span>
       <h3>Sibling</h3>
@@ -904,6 +907,18 @@ The laughter within me...</p></div>
       <div class="themes"><span class="tl">Themes</span><span>Loneliness</span><span>Longing</span><span>Absence</span><span>Regret</span><span>Isolation</span></div>
       <span class="more-link">Read the full poem</span>
     </a>
+    <a class="spot poem-card rv d1" href="#poem-mirrored-tree" aria-label="Read the full poem Mirrored Tree">
+      <span class="qm">“</span>
+      <h3>Mirrored Tree</h3>
+      <p class="by">by Adhvik Mahesh · 2026</p>
+      <div class="preview"><p class="stanza">Withered leaves,
+hang down the fallen tree.
+Once a tall pillar,
+Now a fallen mirror.</p></div>
+      <div class="themes"><span class="tl">Themes</span><span>Decay</span><span>Deception</span><span>Indifference</span><span>Nature fighting back</span><span>Reflection</span></div>
+      <span class="more-link">Read the full poem</span>
+    </a>
+    </div>
   </div>
   <div style="height:80px"></div>
 </div>
@@ -930,6 +945,41 @@ The laughter within me...</p></div>
 </div>
 
 <!-- ================= FULL-PAGE READERS ================= -->
+<div class="reader" id="poem-mirrored-tree" data-back="literary" role="dialog" aria-modal="true" aria-label="Mirrored Tree" hidden>
+  <button class="close" aria-label="Close and go back">✕ <span>Close</span></button>
+  <div class="r-top poem-top"><span class="eyebrow">Poem</span><h1>Mirrored Tree</h1><p class="by">by Adhvik Mahesh · 2026</p></div>
+  <article class="r-body" style="padding-top:20px">
+    <p class="stanza">Withered leaves,
+hang down the fallen tree.
+Once a tall pillar,
+Now a fallen mirror.</p>
+    <p class="stanza">The mortal lies,
+rehearsing their deceit.
+Their shadows passing the corner,
+necks don't turn.</p>
+    <p class="stanza">Wine from the elder tree,
+rotten.
+The lifeless woods
+a sour canvas.</p>
+    <p class="stanza">Nature does not stay inert,
+Earth cracking,
+Water tearing through buildings,
+Wind hurling dust.</p>
+    <p class="stanza">The fallen mirror,
+stare of the mortals.
+Waiting for the rust to answer,
+while the forest drowns in grit.</p>
+    <h2>Themes</h2>
+    <ul class="theme-list">
+      <li><b>Decay</b>A tall tree has fallen, its leaves are withered and the wine from it has gone rotten.</li>
+      <li><b>Deception</b>The mortals rehearse their lies, even while everything around them falls apart.</li>
+      <li><b>Indifference</b>Their shadows pass right by and nobody turns to look.</li>
+      <li><b>Nature fighting back</b>Nature does not stay quiet. The earth cracks, water tears through buildings and wind throws dust.</li>
+      <li><b>Reflection</b>The fallen tree becomes a mirror, so people are left staring at what they caused.</li>
+    </ul>
+  </article>
+</div>
+
 <div class="reader" id="poem-sibling" data-back="literary" role="dialog" aria-modal="true" aria-label="Sibling" hidden>
   <button class="close" aria-label="Close and go back">✕ <span>Close</span></button>
   <div class="r-top poem-top"><span class="eyebrow">Poem</span><h1>Sibling</h1><p class="by">by Adhvik Mahesh · 2026</p></div>

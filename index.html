@@ -496,7 +496,6 @@ body::after{content:"";position:fixed;inset:0;z-index:90;pointer-events:none;opa
 /* ================= v6: mobile parity and polish ================= */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 *{-webkit-tap-highlight-color:transparent}
-body{overscroll-behavior-y:none}
 
 /* safe areas on notched phones */
 .gnav .in{padding-left:max(22px,env(safe-area-inset-left));padding-right:max(22px,env(safe-area-inset-right))}
@@ -543,18 +542,18 @@ body{overscroll-behavior-y:none}
     background:var(--bg);padding:0 max(30px,env(safe-area-inset-left)) calc(60px + env(safe-area-inset-bottom));border:0;
     opacity:0;pointer-events:none;transform:none;transition:opacity .34s var(--ease),visibility .34s;visibility:hidden}
   @supports (height:100dvh){.links{height:calc(100dvh - 52px)}}
-  .menu-open .links{opacity:1;pointer-events:auto;visibility:visible}
+  .menu-open .links,.links.open{opacity:1;pointer-events:auto;visibility:visible}
   .links a{font-size:clamp(2rem,9vw,2.8rem);font-weight:800;letter-spacing:-.04em;color:var(--ink);
     padding:11px 0;opacity:0;transform:translateY(22px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
-  .menu-open .links a{opacity:1;transform:none}
-  .menu-open .links a:nth-child(1){transition-delay:.06s}
-  .menu-open .links a:nth-child(2){transition-delay:.11s}
-  .menu-open .links a:nth-child(3){transition-delay:.16s}
-  .menu-open .links a:nth-child(4){transition-delay:.21s}
-  .menu-open .links a:nth-child(5){transition-delay:.26s}
-  .menu-open .links a:nth-child(6){transition-delay:.31s}
-  .menu-open .links a:nth-child(7){transition-delay:.36s}
-  .menu-open .links a:nth-child(8){transition-delay:.41s}
+  .menu-open .links a,.links.open a{opacity:1;transform:none}
+  .menu-open .links a:nth-child(1),.links.open a:nth-child(1){transition-delay:.06s}
+  .menu-open .links a:nth-child(2),.links.open a:nth-child(2){transition-delay:.11s}
+  .menu-open .links a:nth-child(3),.links.open a:nth-child(3){transition-delay:.16s}
+  .menu-open .links a:nth-child(4),.links.open a:nth-child(4){transition-delay:.21s}
+  .menu-open .links a:nth-child(5),.links.open a:nth-child(5){transition-delay:.26s}
+  .menu-open .links a:nth-child(6),.links.open a:nth-child(6){transition-delay:.31s}
+  .menu-open .links a:nth-child(7),.links.open a:nth-child(7){transition-delay:.36s}
+  .menu-open .links a:nth-child(8),.links.open a:nth-child(8){transition-delay:.41s}
   .links a.active{box-shadow:none;color:var(--rasp)}
   .links a.active::after{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rasp);margin-left:12px;vertical-align:middle}
   body.menu-open{overflow:hidden}
@@ -586,6 +585,7 @@ body{overscroll-behavior-y:none}
   .kpis b{font-size:1.9rem}
 }
 @media (prefers-reduced-motion:reduce){.scroll-cue span{animation:none}}
+
 
 /* ---------- footer ---------- */
 .foot{background:var(--alt);color:var(--muted);font-size:.8rem;padding:30px 0 40px;margin-top:40px}
@@ -639,6 +639,38 @@ body{overscroll-behavior-y:none}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .rv,.hero .up,.stage{opacity:1;transform:none}
   html{scroll-behavior:auto}
+}
+/* ================= v7: a lighter phone build ================= */
+@media (pointer:coarse){
+  /* blur and blend modes are expensive on phone GPUs */
+  body::after{display:none}
+  .gnav{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}
+  .close{background:var(--alt);backdrop-filter:none;-webkit-backdrop-filter:none}
+  .glass{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--card)}
+  .marquee .track{animation-duration:60s}
+}
+
+@media (max-width:640px){
+  /* a hero you can get past */
+  .hero{padding:44px 0 8px}
+  .kicker{font-size:1rem}
+  .mega{font-size:clamp(2.9rem,13vw,4.2rem);margin:.04em 0 .1em}
+  .tagline{font-size:1.35rem}
+  .lede{font-size:1.02rem;margin-top:10px}
+  .hero .links-row{margin-top:20px;gap:18px}
+  .stage{aspect-ratio:3/2;margin-top:14px}
+  .glass{display:none}          /* the floating cards just crowd a small screen */
+  .stage-hint{bottom:-4px}
+  .scroll-cue{margin-top:16px;height:36px;width:23px}
+  .badges{margin-top:22px;gap:8px}
+  .badges span{font-size:.82rem;padding:7px 13px}
+  .flag{padding:44px 18px 0;border-radius:26px}
+  .flag .viz{margin-top:18px}
+  .statement{font-size:clamp(1.5rem,6.6vw,2rem)}
+  .btile{min-height:auto;padding:34px 0 0}
+  .btile .viz{height:220px}
+  .lcard{flex-basis:min(300px,82vw)}
+  .lcard .viz{aspect-ratio:3/2}
 }
 </style>
 </head>
@@ -1584,6 +1616,7 @@ $$('.filters button').forEach(b=>b.onclick=()=>{const f=b.dataset.f;$$('.filters
   function col(){const d=isDark();return d?[[255,79,134],[139,92,246]]:[[216,27,96],[109,40,217]]}
   function frame(now){
     const bw=cv.getBoundingClientRect().width;if(!bw){if(run)requestAnimationFrame(frame);return}
+    if(!W||!pts.length)size();
     if(Math.abs(bw-W)>1||!pts.length)size();
     const t=(now-t0)/1000;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
     if(!pointer){target.x=.66+.12*Math.cos(t*.35);target.y=.48+.16*Math.sin(t*.5)}
@@ -1616,10 +1649,21 @@ $$('.filters button').forEach(b=>b.onclick=()=>{const f=b.dataset.f;$$('.filters
     stageEl.addEventListener('pointerleave',()=>{pointer=false});
   }
   stageEl.style.pointerEvents='auto';
-  new ResizeObserver(size).observe(cv);size();
-  if(still){run=false;frame(performance.now());return}
-  new IntersectionObserver(es=>{const vis=es[0].isIntersecting&&$('[data-page="home"]').classList.contains('on');if(vis&&!run){run=true;requestAnimationFrame(frame)}else if(!vis)run=false},{threshold:0}).observe(cv);
-  addEventListener('hashchange',()=>setTimeout(()=>{const on=$('[data-page="home"]').classList.contains('on');if(!on)run=false;else if(!run&&!still){run=true;requestAnimationFrame(frame)}},0));
+  const resize=()=>{size();if(!run)frame(performance.now())};
+  new ResizeObserver(resize).observe(cv);size();
+  if(still||coarse){run=false;
+    const paint=()=>{size();frame(performance.now())};
+    requestAnimationFrame(paint);addEventListener('load',paint);setTimeout(paint,400);
+    if(coarse){
+      stageEl.addEventListener('pointerdown',()=>{
+        if(run)return;run=true;const until=performance.now()+1600;
+        const tick=n=>{if(n>until){run=false;frame(n);return}frame(n);if(run)requestAnimationFrame(tick)};
+        requestAnimationFrame(tick);
+      },{passive:true});
+    }
+    return}
+  new IntersectionObserver(es=>{const vis=es[0].isIntersecting&&$('[data-page="home"]').classList.contains('on');if(vis&&!run&&!coarse){run=true;requestAnimationFrame(frame)}else if(!vis)run=false},{threshold:0}).observe(cv);
+  addEventListener('hashchange',()=>setTimeout(()=>{const on=$('[data-page="home"]').classList.contains('on');if(!on)run=false;else if(!run&&!still&&!coarse){run=true;requestAnimationFrame(frame)}else if(on&&coarse){size();frame(performance.now())}},0));
 })();
 
 /* ---------- v5: 3D tilt on cards, magnetic buttons (mouse only) ---------- */
@@ -1641,9 +1685,37 @@ if(!still&&matchMedia('(pointer:fine)').matches){
 
 /* ---------- menu ---------- */
 const menuBtn=$('.menu-btn');
-function setMenu(open){document.body.classList.toggle('menu-open',open);menuBtn.setAttribute('aria-expanded',open?'true':'false')}
+function setMenu(open){document.body.classList.toggle('menu-open',open);$('.links').classList.toggle('open',open);menuBtn.setAttribute('aria-expanded',open?'true':'false')}
 menuBtn.onclick=()=>setMenu(!document.body.classList.contains('menu-open'));
 addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('menu-open'))setMenu(false)});
+
+
+/* ---------- v7: keep the phone light ---------- */
+const coarsePointer=matchMedia('(pointer:coarse)').matches;
+
+/* the menu sheet lives on <body> at phone size: inside .gnav its backdrop-filter
+   would make the nav, not the screen, the containing block for position:fixed */
+(function(){
+  const links=$('.links'),nav=$('.gnav .in'),mq=matchMedia('(max-width:820px)');
+  const place=()=>{if(mq.matches){if(links.parentElement!==document.body)document.body.appendChild(links)}
+    else if(links.parentElement!==nav){nav.insertBefore(links,nav.lastElementChild);moveInd()}};
+  mq.addEventListener?mq.addEventListener('change',place):addEventListener('resize',place);
+  place();
+})();
+
+/* SMIL keeps running inside hidden pages, which wastes a phone's battery for
+   nothing. Pause whole pages that are not on screen, and wake the active one. */
+function tuneAnimations(){
+  const live=new Set();
+  const on=document.querySelector('.page.on');if(on)live.add(on);
+  document.querySelectorAll('.reader:not([hidden])').forEach(r=>live.add(r));
+  const hero=document.querySelector('.hero');if(on&&on.dataset.page==='home'&&hero)live.add(hero);
+  document.querySelectorAll('.page,.reader').forEach(sec=>{
+    const wake=live.has(sec);
+    sec.querySelectorAll('svg').forEach(sv=>{try{wake?sv.unpauseAnimations():sv.pauseAnimations()}catch(e){}});
+  });
+}
+addEventListener('hashchange',()=>setTimeout(tuneAnimations,80));
 
 /* ---------- router ---------- */
 const pages=$$('.page'),navs=$$('[data-nav]'),readers=$$('.reader');
@@ -1669,7 +1741,7 @@ addEventListener('hashchange',()=>{
   }else{show();onScroll()}});
 readers.forEach(r=>r.querySelector('.close').onclick=()=>{location.hash=r.dataset.back});
 addEventListener('keydown',e=>{const o=$('.reader:not([hidden])');if(e.key==='Escape'&&o)location.hash=o.dataset.back});
-show();onScroll();
+show();onScroll();tuneAnimations();
 document.fonts&&document.fonts.ready.then(moveInd);
 </script>
 </body>
